@@ -1,3 +1,19 @@
+"""
+LLMCompiler: Adaptive LLM-to-Small-Model Distillation Framework
+
+Copyright (c) 2024–2025
+Liang Zhao and collaborators
+Emory University
+
+This file is part of the LLMCompiler framework.
+Released under the Apache 2.0 License (see LICENSE).
+
+If you use this code in academic work, please cite:
+<Paper citation to appear>
+
+Contact:
+Liang Zhao (liang.zhao@emory.edu)
+"""
 import torch, math
 import torch.nn as nn
 import torch.nn.functional as F

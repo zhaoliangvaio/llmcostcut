@@ -1,3 +1,34 @@
+"""
+LLMCompiler: Adaptive LLM-to-Small-Model Distillation Framework
+
+Copyright (c) 2024–2025
+Liang Zhao and collaborators
+Emory University
+
+This file is part of the LLMCompiler framework.
+Released under the Apache 2.0 License (see LICENSE).
+
+If you use this code in academic work, please cite:
+<Paper citation to appear>
+
+Contact:
+Liang Zhao (liang.zhao@emory.edu)
+"""
+
+"""
+monitor.py
+
+Core orchestration logic for LLMCompiler.
+
+Responsibilities:
+- Route inputs through task-specific student models
+- Predict student correctness
+- Decide when to fall back to teacher LLM
+- Trigger online training for student and correctness models
+- Maintain per-task lifecycle and training policy
+
+This file defines the main public API: `monitor(...)`.
+"""
 import math
 import torch
 from torch.utils.data import DataLoader
@@ -54,8 +85,34 @@ def monitor(
     p_threshold=0.8,
 ):
     """
-    task_id2classes: dict[str, list[str]]
-    llm_fn(text) -> dict[task_id -> label]
+    Execute adaptive inference with automatic LLM distillation.
+
+    Args:
+        task_id2classes (dict[str, list[str]]):
+            Mapping from task name to allowed class labels.
+        text (str):
+            Input text to be classified.
+        llm_fn (callable):
+            Teacher function. Must return dict[task_id -> label].
+        llm_kwargs (dict, optional):
+            Extra arguments forwarded to llm_fn.
+
+
+
+            
+        p_threshold (float):
+            Minimum confidence to trust student prediction.
+
+    Returns:
+        results (dict[str, str]):
+            Predicted label per task.
+        fallback (bool):
+            Whether teacher LLM was invoked.
+
+    Notes:
+        - Student models are updated online.
+        - Teacher calls are minimized automatically.
+        - No gradients flow through the teacher.
     """
     TRAIN_CLASSIFIER_EVERY = 50      # t steps
     TRAIN_CORRECTNESS_EVERY = 20     # t steps
