@@ -21,18 +21,23 @@ from torch.optim import AdamW
 _DEFAULTS = {}
 
 def get_device(device=None):
-    return device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    return device or torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 def get_encoder(model_name="distilbert-base-uncased", device=None):
     key = ("encoder", model_name)
+    target_device = get_device(device)
     if key not in _DEFAULTS:
         config = AutoConfig.from_pretrained(model_name)
         encoder = AutoModel.from_pretrained(model_name, config=config)
         for p in encoder.parameters():
             p.requires_grad = False
-        encoder.to(get_device(device))
+        encoder.to(target_device)
         _DEFAULTS[key] = (encoder, config.hidden_size)
-    return _DEFAULTS[key]
+    encoder, hidden_size = _DEFAULTS[key]
+    current_device = next(encoder.parameters()).device
+    if current_device != target_device:
+        encoder.to(target_device)
+    return encoder, hidden_size
 
 def get_tokenizer(model_name="distilbert-base-uncased"):
     key = ("tokenizer", model_name)

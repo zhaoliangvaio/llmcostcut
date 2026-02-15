@@ -55,10 +55,13 @@ class RingBuffer:
                 # text must stay Python str
                 self.data[i][k] = v
             else:
-                # convert everything else to tensor
-                self.data[i][k] = torch.as_tensor(v)
+                # Keep replay buffer CPU-friendly and move to GPU at train time.
+                tensor_v = torch.as_tensor(v)
+                if tensor_v.is_floating_point():
+                    tensor_v = tensor_v.float()
+                self.data[i][k] = tensor_v.detach().cpu()
 
-        self.data[i]["timestamp"] = torch.tensor(time.time(), dtype=torch.float32)
+        self.data[i]["timestamp"] = torch.tensor(time.time(), dtype=torch.float32, device="cpu")
 
         # update pointer + size
         self.ptr = (self.ptr + 1) % self.capacity
@@ -139,8 +142,6 @@ class ReplayBufferManager:
         )
 
     def sample_for_training(self, workflow_id, batch_size=64):
-        print("batch_size_old:",batch_size)
         if(batch_size>self.buffers[workflow_id].size):
             batch_size = self.buffers[workflow_id].size
-        print("batch_size_new:",batch_size)
         return self.buffers[workflow_id].sample(batch_size)
