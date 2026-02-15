@@ -35,6 +35,7 @@ import threading
 from pathlib import Path
 from typing import Sequence
 import torch
+from concurrent.futures import ThreadPoolExecutor
 from torch.utils.data import DataLoader
 
 from .registry import TaskRegistry
@@ -54,26 +55,13 @@ NEW_LABELS_TRIGGER = 10        # like args.num_labeled_per_iteration
 MAX_TRAIN_ROUNDS   = 500
 REPLAY_SAMPLE_SIZE = 10_000
 TRAIN_BATCH_SIZE   = 32
-TRAIN_CLASSIFIER_EVERY = 20    # trigger classifier when processed samples cross each interval
-TRAIN_CORRECTNESS_EVERY = 20   # trigger correctness when processed samples cross each interval
 CORRECTNESS_BATCH  = 64
 CORRECTNESS_STEPS  = 3
 
-def _crossed_sample_interval(current_step, last_train_step, interval):
-    if interval <= 0:
-        return False
-    return (current_step // interval) > (last_train_step // interval)
-
 def _should_train(task):
     return (
-        _crossed_sample_interval(task.step, task.last_train_step, TRAIN_CLASSIFIER_EVERY)
+        task.num_labeled - task.last_train_labeled >= NEW_LABELS_TRIGGER
         and task.num_train_rounds < MAX_TRAIN_ROUNDS
-    )
-
-def _should_train_correctness(task):
-    return (
-        _crossed_sample_interval(task.step, task.last_correctness_train_step, TRAIN_CORRECTNESS_EVERY)
-        and task.num_correctness_train_rounds < MAX_TRAIN_ROUNDS
     )
 
 def _compute_steps(num_labeled):
@@ -86,30 +74,23 @@ def _should_fallback(p_corrects,threshold):
     return False
 
 _registry = TaskRegistry()
-_classifier_locks = {}
-_correctness_locks = {}
-_training_locks_guard = threading.Lock()
+_async_train_executor = ThreadPoolExecutor(max_workers=1)
+_async_classifier_executor = ThreadPoolExecutor(max_workers=1)
+_correctness_futures = {}
+_classifier_futures = {}
 MONITOR_TIMING_LOG = True
 MONITOR_TIMING_STDOUT = False
 _MONITOR_TIMING_FILE = Path(__file__).resolve().parents[1] / "outputs" / "time_consumption" / "monitor_timing.log"
 _MONITOR_TIMING_LOCK = threading.Lock()
 
-def _get_task_lock(lock_map, task_id):
-    with _training_locks_guard:
-        if task_id not in lock_map:
-            lock_map[task_id] = threading.Lock()
-        return lock_map[task_id]
-
-def _run_in_background_with_lock(lock_map, task_id, name, fn, *args, **kwargs):
-    def _target():
-        task_lock = _get_task_lock(lock_map, task_id)
-        with task_lock:
-            try:
-                fn(*args, **kwargs)
-            except Exception as err:
-                print(f"[monitor] background {name} training failed for {task_id}: {err}")
-
-    threading.Thread(target=_target, daemon=True).start()
+def _finalize_future_if_done(future_map, key, name):
+    future = future_map.get(key)
+    if future is None or not future.done():
+        return
+    err = future.exception()
+    if err is not None:
+        print(f"[monitor] async {name} training failed for {key}: {err}")
+    future_map.pop(key, None)
 
 def _log_monitor_timing(msg):
     if not MONITOR_TIMING_LOG:
@@ -171,6 +152,8 @@ def monitor(
         - Teacher calls are minimized automatically.
         - No gradients flow through the teacher.
     """
+    TRAIN_CLASSIFIER_EVERY = 50      # t steps
+    TRAIN_CORRECTNESS_EVERY = 20     # t steps
     monitor_t0 = time.perf_counter()
     task_timing = {}
     is_single_input = isinstance(text, str)
@@ -229,6 +212,8 @@ def monitor(
         if task.optimizer is None:
             task.optimizer = optimizer or get_optimizer(task.classifier)
         task.step += batch_size
+        _finalize_future_if_done(_classifier_futures, task.task_id, "classifier")
+        _finalize_future_if_done(_correctness_futures, task.task_id, "correctness")
         task_metrics["task_prepare_ms"] = (time.perf_counter() - t0) * 1000.0
 
         # ---- encode text ----
@@ -284,14 +269,10 @@ def monitor(
     def _acc_task_metric(_task_id, _metric, _delta):
         task_timing[_task_id][_metric] = task_timing[_task_id].get(_metric, 0.0) + _delta
 
-    scheduled_classifier_tasks = set()
-    scheduled_correctness_tasks = set()
-
     fallback_indices = []
     for i, sample_text in enumerate(texts):
         t0 = time.perf_counter()
         p_correct_map = {_task_id: content['p_corrects'][i] for _task_id, content in caches.items()}
-        print(f"p_correct_map:{p_correct_map}")
         sample_fallback = _should_fallback(p_correct_map, p_threshold)
         fallback_flags.append(sample_fallback)
         fallback_decision_ms += (time.perf_counter() - t0) * 1000.0
@@ -388,80 +369,42 @@ def monitor(
 
             # ---- incremental training ----
             t0 = time.perf_counter()
-            # Use label-based trigger only; step modulo can miss when batch sizes vary.
-            if _should_train(task):
-            # if True:
+            if task.step % TRAIN_CLASSIFIER_EVERY == 0 and _should_train(task):
                 buf = task.buffers.get_buffer(task.workflow_id())
-                if buf.size > 0 and task.task_id not in scheduled_classifier_tasks:
+                if buf.size > 0:
                     steps = _compute_steps(task.num_labeled)
-                    clipped_steps = max(5, min(50, steps))
-                    train_round = task.num_train_rounds + 1
-                    schedule_msg = (
-                        f"[monitor] schedule classifier training "
-                        f"task={task.task_id} round={train_round} step={task.step} "
-                        f"num_labeled={task.num_labeled} "
-                        f"new_samples_since_last={task.step - task.last_train_step} "
-                        f"buffer_size={buf.size} steps_per_round={clipped_steps}"
-                    )
-                    print(schedule_msg)
-                    _log_monitor_timing(
-                        "[monitor_train_schedule] "
-                        f"task_id={task.task_id} round={train_round} step={task.step} "
-                        f"num_labeled={task.num_labeled} "
-                        f"new_samples_since_last={task.step - task.last_train_step} "
-                        f"buffer_size={buf.size} steps_per_round={clipped_steps}"
-                    )
                     data = task.buffers.sample_for_training(task.workflow_id(),REPLAY_SAMPLE_SIZE)
-                    loader = DataLoader(
-                        data,
-                        batch_size=TRAIN_BATCH_SIZE,
-                        shuffle=True,
-                        pin_memory=(getattr(device, "type", "cpu") == "cuda"),
-                    )
-                    _run_in_background_with_lock(
-                        _classifier_locks,
-                        task.task_id,
-                        "classifier",
-                        train_one_round_buff,
-                        task.classifier,
-                        loader,
-                        device,
-                        task.optimizer,
-                        scheduler,
-                        clipped_steps,
-                        train_tag=f"{task.task_id}:r{train_round}",
-                        log_fn=_log_monitor_timing,
-                    )
-                    scheduled_classifier_tasks.add(task.task_id)
-                    task.last_train_step = task.step
-                    task.last_train_labeled = task.num_labeled
-                    task.num_train_rounds += 1
+                    running_future = _classifier_futures.get(task.task_id)
+                    if running_future is None or running_future.done():
+                        loader = DataLoader(
+                            data,
+                            batch_size=TRAIN_BATCH_SIZE,
+                            shuffle=True,
+                            pin_memory=(getattr(device, "type", "cpu") == "cuda"),
+                        )
+                        _classifier_futures[task.task_id] = _async_classifier_executor.submit(
+                            train_one_round_buff,
+                            task.classifier,
+                            loader,
+                            device,
+                            task.optimizer,
+                            scheduler,
+                            max(5, min(50, steps)),
+                        )
+                        task.last_train_labeled = task.num_labeled
+                        task.num_train_rounds += 1
             _acc_task_metric(task_id, "classifier_train_schedule_ms", (time.perf_counter() - t0) * 1000.0)
 
             # ---- train correctness predictor ----
             t0 = time.perf_counter()
-            if _should_train_correctness(task) and task.task_id not in scheduled_correctness_tasks:
-            # if task.task_id not in scheduled_correctness_tasks:
-                correctness_round = task.num_correctness_train_rounds + 1
-                _log_monitor_timing(
-                    "[monitor_correctness_schedule] "
-                    f"task_id={task.task_id} round={correctness_round} step={task.step} "
-                    f"num_labeled={task.num_labeled} "
-                    f"new_samples_since_last={task.step - task.last_correctness_train_step} "
-                    f"batch={CORRECTNESS_BATCH} steps={CORRECTNESS_STEPS}"
-                )
-                _run_in_background_with_lock(
-                    _correctness_locks,
-                    task.task_id,
-                    "correctness",
-                    task.correctness.train_step,
-                    batch=CORRECTNESS_BATCH,
-                    steps=CORRECTNESS_STEPS
-                )
-                scheduled_correctness_tasks.add(task.task_id)
-                task.last_correctness_train_step = task.step
-                task.last_correctness_train_labeled = task.num_labeled
-                task.num_correctness_train_rounds += 1
+            if task.step % TRAIN_CORRECTNESS_EVERY == 0:
+                running_future = _correctness_futures.get(task.task_id)
+                if running_future is None or running_future.done():
+                    _correctness_futures[task.task_id] = _async_train_executor.submit(
+                        task.correctness.train_step,
+                        batch=CORRECTNESS_BATCH,
+                        steps=CORRECTNESS_STEPS
+                    )
             _acc_task_metric(task_id, "correctness_train_schedule_ms", (time.perf_counter() - t0) * 1000.0)
             _acc_task_metric(task_id, "teacher_task_total_ms", (time.perf_counter() - teacher_task_t0) * 1000.0)
 

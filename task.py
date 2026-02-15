@@ -49,10 +49,13 @@ class Task:
         self.num_labels = len(classes)
         self.device = device
         self.step = 0                 # how many samples processed
-        # self.last_train_step = 0
+        self.last_train_step = 0
         self.num_labeled = 0
         self.last_train_labeled = 0
         self.num_train_rounds = 0
+        self.last_correctness_train_step = 0
+        self.last_correctness_train_labeled = 0
+        self.num_correctness_train_rounds = 0
         self.optimizer = None
         # === student classifier ===
         self.classifier = Classifier(
