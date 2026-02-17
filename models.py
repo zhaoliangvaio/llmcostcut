@@ -230,6 +230,42 @@ class GNNClassifier(nn.Module):
         return self.classifier(out)
 
 
+class _ConceptNode(nn.Module):
+    """Single concept node: linear transform + LayerNorm with optional residual skip.
+
+    Used internally by :class:`GCPClassifier` for both root-node input
+    projections and non-root transition functions.
+
+    When ``use_resnet=True`` a residual path is added::
+
+        h = LayerNorm( drop(act(W·x))  +  shortcut(x) )
+
+    where ``shortcut`` is an identity when ``in_dim == out_dim``, and a
+    bias-free linear projection otherwise.
+    """
+
+    def __init__(self, in_dim: int, out_dim: int, dropout: float, use_resnet: bool):
+        super().__init__()
+        self.linear = nn.Linear(in_dim, out_dim)
+        self.act = nn.GELU()
+        self.drop = nn.Dropout(dropout)
+        self.norm = nn.LayerNorm(out_dim)
+        self.use_resnet = use_resnet
+        # Projection shortcut needed only when dimensions differ
+        self.shortcut: Optional[nn.Linear] = (
+            nn.Linear(in_dim, out_dim, bias=False)
+            if (use_resnet and in_dim != out_dim)
+            else None
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        h = self.drop(self.act(self.linear(x)))
+        if self.use_resnet:
+            res = self.shortcut(x) if self.shortcut is not None else x
+            h = h + res
+        return self.norm(h)
+
+
 class GCPClassifier(nn.Module):
     """Graph of Concept Predictors (GCP) classification head.
 
@@ -266,17 +302,32 @@ class GCPClassifier(nn.Module):
             defining the concept DAG.  Node indices must be contiguous
             integers starting at 0.  The graph must be a valid DAG with no
             isolated nodes (every node must appear in at least one edge).
+        use_resnet (bool): If ``True``, each concept node's transform adds a
+            residual (skip) connection::
+
+                hⱼ = LayerNorm( drop(act(Wⱼ · x))  +  shortcut(x) )
+
+            The shortcut is an identity when the input and output dimensions
+            match (single-parent non-root nodes), or a bias-free linear
+            projection otherwise (root nodes and multi-parent merges).
+            Defaults to ``False``.
         dropout (float): Dropout probability applied in all sub-modules.
 
     Raises:
         ValueError: If ``edges`` is empty, contains a cycle, or leaves any
             node isolated (connected to no edges).
 
-    Example — linear chain (Chain-of-Thought equivalent)::
+    Example — linear chain, standard::
 
         # 0 → 1 → 2 → 3
         head = GCPClassifier(hidden_size=768, num_labels=4,
                              edges=[(0, 1), (1, 2), (2, 3)])
+
+    Example — linear chain with ResNet skip connections::
+
+        head = GCPClassifier(hidden_size=768, num_labels=4,
+                             edges=[(0, 1), (1, 2), (2, 3)],
+                             use_resnet=True)
 
     Example — branching DAG (two roots merge, then project to output)::
 
@@ -291,6 +342,7 @@ class GCPClassifier(nn.Module):
         num_labels: int = 4,
         concept_dim: int = 256,
         edges: List[Tuple[int, int]] = [],
+        use_resnet: bool = False,
         dropout: float = 0.1,
     ):
         super().__init__()
@@ -322,6 +374,7 @@ class GCPClassifier(nn.Module):
 
         self.num_nodes = num_nodes
         self.concept_dim = concept_dim
+        self.use_resnet = use_resnet
         self.dropout_layer = nn.Dropout(dropout)
 
         # parents[j] = sorted list of parent node indices for node j
@@ -343,27 +396,30 @@ class GCPClassifier(nn.Module):
         )
 
         # ── Learnable modules ─────────────────────────────────────────────
-        # Input projections for root nodes (no parents)
+        # Input projections for root nodes (no parents).
+        # use_resnet: shortcut projects hidden_size → concept_dim when they differ.
         self.input_projections = nn.ModuleDict()
         for j in range(num_nodes):
             if not self._parents[j]:
-                self.input_projections[str(j)] = nn.Sequential(
-                    nn.Linear(hidden_size, concept_dim),
-                    nn.GELU(),
-                    nn.LayerNorm(concept_dim),
+                self.input_projections[str(j)] = _ConceptNode(
+                    in_dim=hidden_size,
+                    out_dim=concept_dim,
+                    dropout=dropout,
+                    use_resnet=use_resnet,
                 )
 
-        # Node-specific transition functions for non-root nodes;
+        # Node-specific transition functions for non-root nodes.
         # input dim = concept_dim × |Pa(j)|
+        # use_resnet: shortcut projects that concatenated dim → concept_dim.
         self.transition_fns = nn.ModuleDict()
         for j in range(num_nodes):
             if self._parents[j]:
                 in_dim = concept_dim * len(self._parents[j])
-                self.transition_fns[str(j)] = nn.Sequential(
-                    nn.Linear(in_dim, concept_dim),
-                    nn.GELU(),
-                    nn.Dropout(dropout),
-                    nn.LayerNorm(concept_dim),
+                self.transition_fns[str(j)] = _ConceptNode(
+                    in_dim=in_dim,
+                    out_dim=concept_dim,
+                    dropout=dropout,
+                    use_resnet=use_resnet,
                 )
 
         # Per-node concept predictors (used for intermediate supervision)
@@ -498,7 +554,7 @@ def build_classifier(
             * ``"deep_mlp"`` – ``num_layers=4``, ``dropout=0.2``
             * ``"cnn"``      – ``num_filters=256``, ``kernel_sizes=(3, 5)``
             * ``"gnn"``      – ``num_nodes=8``, ``num_layers=3``
-            * ``"gcp"``      – ``concept_dim=256``,
+            * ``"gcp"``      – ``concept_dim=256``, ``use_resnet=False``,
               ``edges=[(0,1),(1,2),(2,3)]`` (required)
 
     Returns:
