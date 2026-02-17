@@ -1,93 +1,89 @@
-# LLMCompiler 安装指南
+# LLMCompiler Installation Guide
 
-## 安装方式
+## Installation Options
 
-### 方式 1: 从本地目录安装（开发模式）
+### Option 1: Install from local directory (development mode)
 
 ```bash
 cd llmcompiler
 pip install -e .
 ```
 
-或者使用 `-e` 标志进行可编辑安装（推荐用于开发）：
+Use editable mode (`-e`) for development (recommended).
 
-```bash
-pip install -e .
-```
-
-### 方式 2: 从本地目录安装（普通模式）
+### Option 2: Install from local directory (standard mode)
 
 ```bash
 cd llmcompiler
 pip install .
 ```
 
-### 方式 3: 从父目录安装
+### Option 3: Install from parent directory
 
-如果你在 `research-pilot` 目录下：
+If you are in the `research-pilot` directory:
 
 ```bash
 pip install -e ./llmcompiler
 ```
 
-### 方式 4: 安装开发依赖
+### Option 4: Install development dependencies
 
 ```bash
 pip install -e .[dev]
 ```
 
-或者：
+Or:
 
 ```bash
 pip install -e ".[dev]"
 ```
 
-## 验证安装
+## Verify Installation
 
-安装完成后，可以验证是否成功：
+After installation, verify with:
 
 ```python
 from llmcompiler import monitor
-print("LLMCompiler 安装成功！")
+print("LLMCompiler installed successfully!")
 ```
 
-## 依赖要求
+## Requirements
 
 - Python >= 3.8
 - PyTorch >= 1.9.0
 - Transformers >= 4.20.0
 
-## 卸载
+## Uninstall
 
 ```bash
 pip uninstall llmcompiler
 ```
 
-## 常见问题
+## FAQ
 
-### 问题 1: 找不到模块
+### Issue 1: Module not found
 
-如果遇到 `ModuleNotFoundError`，确保：
-1. 已正确安装包
-2. 使用的 Python 环境正确
-3. 尝试使用 `pip install -e .` 进行可编辑安装
+If you see `ModuleNotFoundError`, make sure:
+1. The package is installed correctly.
+2. You are using the correct Python environment.
+3. Try editable install: `pip install -e .`.
 
-### 问题 2: 依赖冲突
+### Issue 2: Dependency conflicts
 
-如果遇到依赖版本冲突：
-1. 检查 PyTorch 和 Transformers 版本
-2. 考虑使用虚拟环境：
+If dependency versions conflict:
+1. Check your PyTorch and Transformers versions.
+2. Consider using a virtual environment:
    ```bash
    python -m venv venv
    source venv/bin/activate  # Linux/Mac
-   # 或
+   # or
    venv\Scripts\activate  # Windows
    pip install -e .
    ```
 
-### 问题 3: CUDA 相关问题
+### Issue 3: CUDA-related issues
 
-如果使用 GPU，确保安装了对应版本的 PyTorch：
+If using GPU, install a matching PyTorch build:
 ```bash
 # CUDA 11.8
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118

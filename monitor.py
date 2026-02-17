@@ -316,9 +316,9 @@ def monitor(
         if isinstance(teacher_out_batch, list):
             fallback_teacher_outs = teacher_out_batch
         elif isinstance(teacher_out_batch, dict):
-            # 兼容两种返回：
-            # 1) len(fallback_indices)==1 时，旧接口直接返回单个 dict[task_id -> label]
-            # 2) 新批接口返回 dict[task_id -> list[label]]
+            # Support two return formats:
+            # 1) When len(fallback_indices) == 1, legacy API returns a single dict[task_id -> label]
+            # 2) New batch API returns dict[task_id -> list[label]]
             if len(fallback_indices) == 1 and all(not isinstance(v, (list, tuple)) for v in teacher_out_batch.values()):
                 fallback_teacher_outs = [teacher_out_batch]
             else:

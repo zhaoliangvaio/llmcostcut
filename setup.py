@@ -1,11 +1,11 @@
 """
-LLMCompiler 安装脚本
+LLMCompiler installation script.
 
-推荐安装方式（从父目录）:
+Recommended installation (from parent directory):
     cd /scratch1/zyu273/research-pilot
     pip install -e ./llmcompiler
 
-或者从当前目录安装:
+Or install from the current directory:
     cd llmcompiler
     pip install -e .
 """
@@ -13,7 +13,7 @@ LLMCompiler 安装脚本
 from setuptools import setup
 from pathlib import Path
 
-# 读取 README
+# Read README
 readme_file = Path(__file__).parent / "README.md"
 long_description = readme_file.read_text(encoding="utf-8") if readme_file.exists() else ""
 
@@ -27,7 +27,7 @@ setup(
     author_email="liang.zhao@emory.edu",
     url="https://github.com/emory-llmcompiler/llmcompiler",
     license="Apache 2.0",
-    # 包名是 llmcompiler，包内容在当前目录
+    # Package name is llmcompiler; package contents are in this directory
     packages=["llmcompiler"],
     package_dir={"llmcompiler": "."},
     python_requires=">=3.8",

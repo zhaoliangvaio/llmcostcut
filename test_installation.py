@@ -1,33 +1,33 @@
 #!/usr/bin/env python
 """
-测试 LLMCompiler 包是否正确安装
+Test whether the LLMCompiler package is installed correctly.
 
-运行方式:
+Run:
     python test_installation.py
 """
 
 def test_import():
-    """测试基本导入"""
+    """Test basic import."""
     try:
         from llmcompiler import monitor
-        print("✅ 成功导入 monitor")
+        print("✅ Successfully imported monitor")
         return True
     except ImportError as e:
-        print(f"❌ 导入失败: {e}")
+        print(f"❌ Import failed: {e}")
         return False
 
 def test_submodules():
-    """测试子模块导入"""
+    """Test submodule imports."""
     try:
         from llmcompiler import task, models, buffers, correctness, trainer, registry, defaults
-        print("✅ 成功导入所有子模块")
+        print("✅ Successfully imported all submodules")
         return True
     except ImportError as e:
-        print(f"❌ 子模块导入失败: {e}")
+        print(f"❌ Submodule import failed: {e}")
         return False
 
 def test_monitor_signature():
-    """测试 monitor 函数签名"""
+    """Test monitor function signature."""
     try:
         from llmcompiler import monitor
         import inspect
@@ -39,41 +39,41 @@ def test_monitor_signature():
         missing = [p for p in required_params if p not in params]
         
         if missing:
-            print(f"❌ monitor 函数缺少必需参数: {missing}")
+            print(f"❌ monitor function is missing required parameters: {missing}")
             return False
         
-        print("✅ monitor 函数签名正确")
-        print(f"   参数: {params}")
+        print("✅ monitor function signature is correct")
+        print(f"   Parameters: {params}")
         return True
     except Exception as e:
-        print(f"❌ 检查函数签名失败: {e}")
+        print(f"❌ Failed to check function signature: {e}")
         return False
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("LLMCompiler 安装测试")
+    print("LLMCompiler Installation Test")
     print("=" * 60)
     print()
     
     results = []
     
-    print("1. 测试基本导入...")
+    print("1. Testing basic import...")
     results.append(test_import())
     print()
     
-    print("2. 测试子模块导入...")
+    print("2. Testing submodule imports...")
     results.append(test_submodules())
     print()
     
-    print("3. 测试 monitor 函数签名...")
+    print("3. Testing monitor function signature...")
     results.append(test_monitor_signature())
     print()
     
     print("=" * 60)
     if all(results):
-        print("✅ 所有测试通过！LLMCompiler 安装成功。")
+        print("✅ All tests passed! LLMCompiler installed successfully.")
         exit(0)
     else:
-        print("❌ 部分测试失败，请检查安装。")
+        print("❌ Some tests failed. Please check the installation.")
         exit(1)
 

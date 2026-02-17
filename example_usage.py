@@ -1,28 +1,28 @@
 """
-LLMCompiler 使用示例
+LLMCompiler usage examples.
 
-展示如何将 LLMCompiler 框架接入到你的代码中。
+Demonstrates how to integrate the LLMCompiler framework into your codebase.
 """
 import torch
 from llmcompiler.monitor import monitor
 
 
 # ============================================
-# 步骤 1: 定义你的 LLM 教师函数
+# Step 1: Define your teacher LLM function
 # ============================================
 def your_llm_teacher(text, task_id2classes, **kwargs):
     """
-    你的 LLM 调用函数（教师模型）
+    Your LLM call function (teacher model).
     
     Args:
-        text: 输入文本
-        task_id2classes: 任务ID到类别列表的映射
-        **kwargs: 其他参数（如 temperature, max_tokens 等）
+        text: Input text.
+        task_id2classes: Mapping from task IDs to class lists.
+        **kwargs: Additional parameters (for example temperature, max_tokens).
     
     Returns:
-        dict: {task_id: predicted_label} 格式的字典
+        dict: A dictionary in the format {task_id: predicted_label}.
     """
-    # 示例：使用 OpenAI API
+    # Example: use OpenAI API
     # import openai
     # response = openai.ChatCompletion.create(
     #     model="gpt-3.5-turbo",
@@ -31,91 +31,91 @@ def your_llm_teacher(text, task_id2classes, **kwargs):
     # )
     # result = response.choices[0].message.content
     
-    # 示例：使用本地模型
+    # Example: use a local model
     # from transformers import pipeline
     # classifier = pipeline("text-classification", model="your-model")
     # result = classifier(text)
     
-    # 这里是一个简单的示例实现
+    # This is a simple placeholder implementation
     results = {}
     for task_id, classes in task_id2classes.items():
-        # 你的 LLM 推理逻辑
-        # 这里只是示例，你需要替换为实际的 LLM 调用
-        results[task_id] = classes[0]  # 示例：返回第一个类别
+        # Your LLM inference logic
+        # This is only an example; replace with your real LLM call
+        results[task_id] = classes[0]  # Example: return the first class
     
     return results
 
 
 # ============================================
-# 步骤 2: 配置任务和类别
+# Step 2: Configure tasks and classes
 # ============================================
 def setup_tasks():
     """
-    定义你要分类的任务和对应的类别
+    Define the tasks and corresponding classes to classify.
     """
     task_id2classes = {
         "sentiment": ["positive", "negative", "neutral"],
         "topic": ["sports", "politics", "technology", "entertainment"],
-        # 可以添加更多任务
+        # You can add more tasks
         # "intent": ["question", "command", "statement"],
     }
     return task_id2classes
 
 
 # ============================================
-# 步骤 3: 基本使用示例
+# Step 3: Basic usage example
 # ============================================
 def basic_usage_example():
-    """基本使用示例"""
-    # 配置任务
+    """Basic usage example."""
+    # Configure tasks
     task_id2classes = setup_tasks()
     
-    # 输入文本
+    # Input text
     text = "I love this new smartphone! It's amazing."
     
-    # 调用 monitor 函数
+    # Call monitor
     results, fallback = monitor(
         task_id2classes=task_id2classes,
         text=text,
         llm_fn=your_llm_teacher,
-        llm_kwargs=None,  # 传递给 llm_fn 的额外参数
-        p_threshold=0.8,  # 置信度阈值，低于此值会回退到 LLM
+        llm_kwargs=None,  # Extra parameters passed to llm_fn
+        p_threshold=0.8,  # Confidence threshold; below this value it falls back to LLM
     )
     
-    print(f"预测结果: {results}")
-    print(f"是否使用了 LLM: {fallback}")
+    print(f"Prediction results: {results}")
+    print(f"Used LLM fallback: {fallback}")
     
     return results, fallback
 
 
 # ============================================
-# 步骤 4: 自定义编码器和设备
+# Step 4: Customize encoder and device
 # ============================================
 def advanced_usage_example():
-    """高级使用示例：自定义编码器和优化器"""
+    """Advanced usage example: customize encoder and optimizer."""
     from transformers import AutoModel, AutoTokenizer
     from torch.optim import AdamW
     
-    # 自定义编码器（可选，默认使用 distilbert-base-uncased）
+    # Custom encoder (optional; defaults to distilbert-base-uncased)
     encoder = AutoModel.from_pretrained("bert-base-uncased")
     for p in encoder.parameters():
-        p.requires_grad = False  # 冻结编码器
+        p.requires_grad = False  # Freeze encoder
     
     tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
-    hidden_size = 768  # BERT 的隐藏层大小
+    hidden_size = 768  # BERT hidden size
     
-    # 自定义设备
+    # Custom device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     encoder.to(device)
     
-    # 配置任务
+    # Configure tasks
     task_id2classes = setup_tasks()
     
-    # 自定义优化器（可选）
-    # 注意：optimizer 会在 monitor 内部为每个任务创建，这里只是示例
-    # 如果需要自定义，可以在 monitor 调用后手动设置
+    # Custom optimizer (optional)
+    # Note: optimizer is created per task inside monitor; this is only an example
+    # If needed, you can customize it after calling monitor
     
-    # 调用 monitor
+    # Call monitor
     text = "The stock market crashed today."
     results, fallback = monitor(
         task_id2classes=task_id2classes,
@@ -125,17 +125,17 @@ def advanced_usage_example():
         tokenizer=tokenizer,
         device=device,
         hidden_size=hidden_size,
-        p_threshold=0.75,  # 更低的阈值，更频繁地使用 LLM
+        p_threshold=0.75,  # Lower threshold, more frequent LLM fallback
     )
     
     return results, fallback
 
 
 # ============================================
-# 步骤 5: 批量处理示例
+# Step 5: Batch processing example
 # ============================================
 def batch_processing_example():
-    """批量处理多个文本"""
+    """Process multiple texts in batch."""
     task_id2classes = setup_tasks()
     
     texts = [
@@ -158,18 +158,18 @@ def batch_processing_example():
         if fallback:
             llm_call_count += 1
     
-    print(f"处理了 {len(texts)} 个文本")
-    print(f"LLM 调用次数: {llm_call_count}")
-    print(f"LLM 调用率: {llm_call_count / len(texts) * 100:.2f}%")
+    print(f"Processed {len(texts)} texts")
+    print(f"LLM calls: {llm_call_count}")
+    print(f"LLM call rate: {llm_call_count / len(texts) * 100:.2f}%")
     
     return all_results
 
 
 # ============================================
-# 步骤 6: 与现有代码集成
+# Step 6: Integrate with existing code
 # ============================================
 class YourApplication:
-    """示例：将 LLMCompiler 集成到你的应用中"""
+    """Example: integrate LLMCompiler into your application."""
     
     def __init__(self):
         self.task_id2classes = setup_tasks()
@@ -178,7 +178,8 @@ class YourApplication:
     
     def classify(self, text, **llm_kwargs):
         """
-        分类接口，自动使用学生模型或回退到 LLM
+        Classification interface that automatically uses student model
+        or falls back to the LLM.
         """
         self.total_calls += 1
         
@@ -196,7 +197,7 @@ class YourApplication:
         return results
     
     def get_statistics(self):
-        """获取统计信息"""
+        """Get runtime statistics."""
         return {
             "total_calls": self.total_calls,
             "llm_calls": self.llm_call_count,
@@ -205,23 +206,23 @@ class YourApplication:
 
 
 # ============================================
-# 主函数：运行示例
+# Main entry: run examples
 # ============================================
 if __name__ == "__main__":
     print("=" * 60)
-    print("LLMCompiler 使用示例")
+    print("LLMCompiler Usage Examples")
     print("=" * 60)
     
-    print("\n1. 基本使用示例:")
+    print("\n1. Basic usage example:")
     basic_usage_example()
     
-    print("\n2. 批量处理示例:")
+    print("\n2. Batch processing example:")
     batch_processing_example()
     
-    print("\n3. 应用集成示例:")
+    print("\n3. Application integration example:")
     app = YourApplication()
     app.classify("I love this product!")
     app.classify("This is terrible.")
     stats = app.get_statistics()
-    print(f"统计信息: {stats}")
+    print(f"Statistics: {stats}")
 

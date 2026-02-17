@@ -1,8 +1,8 @@
-# LLMCompiler 核心依赖
+# LLMCompiler core dependencies
 torch>=1.9.0
 transformers>=4.20.0
 
-# 可选：开发依赖
+# Optional: development dependencies
 # pytest>=7.0.0
 # pytest-cov>=4.0.0
 # black>=22.0.0

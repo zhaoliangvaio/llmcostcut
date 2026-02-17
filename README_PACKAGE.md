@@ -1,47 +1,47 @@
-# LLMCompiler Python 包
+# LLMCompiler Python Package
 
-LLMCompiler 已经配置为独立的 Python 包，可以安装和使用。
+LLMCompiler is configured as a standalone Python package and is ready to install and use.
 
-## 快速安装
+## Quick Install
 
-### 方式 1: 从父目录安装（推荐）
+### Option 1: Install from parent directory (recommended)
 
 ```bash
 cd /scratch1/zyu273/research-pilot
 pip install -e ./llmcompiler
 ```
 
-### 方式 2: 从 llmcompiler 目录安装
+### Option 2: Install from the `llmcompiler` directory
 
 ```bash
 cd llmcompiler
 pip install -e .
 ```
 
-### 方式 3: 安装开发依赖
+### Option 3: Install development dependencies
 
 ```bash
 pip install -e ./llmcompiler[dev]
 ```
 
-## 验证安装
+## Verify Installation
 
 ```python
 from llmcompiler import monitor
-print("✅ LLMCompiler 安装成功！")
+print("✅ LLMCompiler installed successfully!")
 ```
 
-## 使用示例
+## Usage Example
 
 ```python
 from llmcompiler import monitor
 
-# 定义你的 LLM 函数
+# Define your LLM function
 def my_llm(text, task_id2classes, **kwargs):
-    # 你的 LLM 调用逻辑
+    # Your LLM call logic
     return {"sentiment": "positive"}
 
-# 使用
+# Run
 results, fallback = monitor(
     task_id2classes={"sentiment": ["positive", "negative"]},
     text="I love this!",
@@ -49,51 +49,51 @@ results, fallback = monitor(
 )
 ```
 
-更多示例请查看 `example_usage.py` 和 `QUICKSTART.md`。
+For more examples, see `example_usage.py` and `QUICKSTART.md`.
 
-## 包结构
+## Package Structure
 
 ```
 llmcompiler/
-├── __init__.py          # 包初始化，导出 monitor
-├── monitor.py           # 核心 API
-├── task.py              # 任务抽象
-├── models.py            # 模型定义
-├── buffers.py           # 回放缓冲区
-├── correctness.py       # 正确性预测器
-├── trainer.py           # 训练函数
-├── registry.py          # 任务注册表
-├── defaults.py          # 默认配置
-├── setup.py             # 安装脚本
-├── pyproject.toml       # 现代 Python 包配置
-├── requirements.txt     # 依赖列表
-├── README.md            # 项目说明
-├── QUICKSTART.md        # 快速开始指南
-└── INSTALL.md           # 详细安装指南
+├── __init__.py          # Package initialization, exports monitor
+├── monitor.py           # Core API
+├── task.py              # Task abstraction
+├── models.py            # Model definitions
+├── buffers.py           # Replay buffer
+├── correctness.py       # Correctness predictor
+├── trainer.py           # Training functions
+├── registry.py          # Task registry
+├── defaults.py          # Default configuration
+├── setup.py             # Installation script
+├── pyproject.toml       # Modern Python package config
+├── requirements.txt     # Dependency list
+├── README.md            # Project overview
+├── QUICKSTART.md        # Quick start guide
+└── INSTALL.md           # Detailed install guide
 ```
 
-## 依赖
+## Dependencies
 
 - Python >= 3.8
 - PyTorch >= 1.9.0
 - Transformers >= 4.20.0
 
-## 构建和发布（可选）
+## Build and Publish (Optional)
 
-如果你想将包发布到 PyPI：
+To publish to PyPI:
 
 ```bash
-# 安装构建工具
+# Install build tools
 pip install build twine
 
-# 构建包
+# Build package
 python -m build
 
-# 发布到 PyPI（需要配置）
+# Upload to PyPI (requires configuration)
 twine upload dist/*
 ```
 
-## 卸载
+## Uninstall
 
 ```bash
 pip uninstall llmcompiler
