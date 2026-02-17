@@ -2,7 +2,7 @@
 LLMCompiler: Adaptive LLM-to-Small-Model Distillation Framework
 
 Copyright (c) 2024–2025
-Liang Zhao and collaborators
+Liang Zhao and Ziyang Yu
 Emory University
 
 This file is part of the LLMCompiler framework.
