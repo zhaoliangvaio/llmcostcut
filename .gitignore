@@ -2,3 +2,7 @@ __pycache__/
 *.pyc
 .DS_Store
 .env
+monitor_async_nonblock.py
+.pytest_cache/
+llmcompiler.egg-info/
+test/

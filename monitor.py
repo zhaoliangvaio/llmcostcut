@@ -38,7 +38,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from .registry import TaskRegistry
-from .models import annotate_with_classifier
+from .models import annotate_with_classifier, CLASSIFIER_REGISTRY
 from .trainer import train_one_round_buff
 from .defaults import (
     get_device,
@@ -46,6 +46,7 @@ from .defaults import (
     get_tokenizer,
     get_optimizer,
 )
+from .selector import ActiveLearningSelector
 
 # -----------------------------
 # Training policy (tunable)
@@ -133,6 +134,15 @@ def monitor(
     llm_fn,
     llm_kwargs=None,
     *,
+    mode,
+    offline_select_method=None,
+    offline_select_budget=None,
+    offline_select_seed=42,
+    offline_select_probs=None,
+    offline_select_embeddings=None,
+    offline_select_mc_probs=None,
+    offline_select_already_selected=None,
+    offline_select_pool_size=None,
     encoder=None,
     tokenizer=None,
     device=None,
@@ -140,6 +150,8 @@ def monitor(
     optimizer=None,
     scheduler=None,
     p_threshold=0.8,
+    classifier_type="mlp",
+    classifier_kwargs=None,
 ):
     """
     Execute adaptive inference with automatic LLM distillation.
@@ -153,12 +165,48 @@ def monitor(
             Teacher function. Must return dict[task_id -> label].
         llm_kwargs (dict, optional):
             Extra arguments forwarded to llm_fn.
-
-
-
-            
+        mode (str):
+            **Required.** Inference mode. Must be one of ``"online"`` or ``"offline"``.
+            - ``"online"``: student model is updated continuously during inference.
+            - ``"offline"``: student model is frozen; a fixed subset of samples is
+              selected up-front using ``offline_select_method`` and
+              ``offline_select_budget``.
+        offline_select_method (str, optional):
+            Sample-selection strategy used in offline mode (e.g. ``"random"``,
+            ``"uncertainty"``). Required when ``mode="offline"``.
+        offline_select_budget (int, optional):
+            Maximum number of samples to send to the teacher in offline mode.
+            Required when ``mode="offline"``.
+        offline_select_seed (int, optional):
+            Random seed for offline sample selection. Defaults to ``42``.
         p_threshold (float):
             Minimum confidence to trust student prediction.
+        classifier_type (str):
+            Architecture of the student classification head.  Must be one of
+            the keys registered in ``CLASSIFIER_REGISTRY``:
+
+            * ``"mlp"``      – 2-layer MLP with dropout and GELU *(default)*.
+            * ``"linear"``   – Single linear layer (fastest, no hidden layer).
+            * ``"deep_mlp"`` – Configurable-depth MLP with residual connections.
+            * ``"cnn"``      – Multi-scale 1-D CNN with global max-pooling.
+            * ``"gnn"``      – GNN-inspired head using virtual-graph message passing.
+
+            Defaults to ``"mlp"``.
+        classifier_kwargs (dict, optional):
+            Architecture-specific keyword arguments forwarded to the selected
+            classifier class.  For example::
+
+                # Deeper MLP with less dropout
+                classifier_type="deep_mlp",
+                classifier_kwargs={"num_layers": 4, "dropout": 0.05}
+
+                # CNN with larger filters
+                classifier_type="cnn",
+                classifier_kwargs={"num_filters": 256, "kernel_sizes": (3, 5, 7, 9)}
+
+                # GNN with 8 virtual nodes and 3 message-passing rounds
+                classifier_type="gnn",
+                classifier_kwargs={"num_nodes": 8, "num_layers": 3}
 
     Returns:
         results (dict[str, str] | list[dict[str, str]]):
@@ -167,14 +215,66 @@ def monitor(
             Whether teacher LLM was invoked. Returns a list when batch input is used.
 
     Notes:
-        - Student models are updated online.
         - Teacher calls are minimized automatically.
         - No gradients flow through the teacher.
+        - ``classifier_type`` and ``classifier_kwargs`` only take effect the
+          *first time* a task is seen; subsequent calls reuse the already-created
+          ``Task`` object from the registry.
     """
+    _VALID_CLASSIFIERS = sorted(CLASSIFIER_REGISTRY)
+    if classifier_type.lower() not in CLASSIFIER_REGISTRY:
+        raise ValueError(
+            f"'classifier_type' must be one of {_VALID_CLASSIFIERS}, "
+            f"got {classifier_type!r}."
+        )
+    _VALID_MODES = {"online", "offline"}
+    if mode not in _VALID_MODES:
+        raise ValueError(
+            f"'mode' must be one of {sorted(_VALID_MODES)}, got {mode!r}."
+        )
+    # Bug-fix 1: capture is_single_input BEFORE offline may convert text to a
+    # list, so the return type stays consistent regardless of mode.
+    is_single_input = isinstance(text, str)
+
+    if mode == "offline":
+        if offline_select_method is None:
+            raise ValueError(
+                "'offline_select_method' is required when mode='offline'."
+            )
+        if offline_select_budget is None:
+            raise ValueError(
+                "'offline_select_budget' is required when mode='offline'."
+            )
+
+        # Bug-fix 3: auto-derive pool_size from the input when the caller did
+        # not supply it explicitly.  This makes "random" work out of the box.
+        _effective_pool_size = offline_select_pool_size
+        if _effective_pool_size is None:
+            if isinstance(text, str):
+                _effective_pool_size = 1
+            else:
+                _effective_pool_size = len(text)
+
+        selected_indices = ActiveLearningSelector.select(
+            method=offline_select_method,
+            budget=offline_select_budget,
+            probs=offline_select_probs,
+            embeddings=offline_select_embeddings,
+            mc_probs=offline_select_mc_probs,
+            already_selected=offline_select_already_selected,
+            pool_size=_effective_pool_size,
+            seed=offline_select_seed,
+        )
+        if isinstance(text, str):
+            text = [text]
+        else:
+            text = [text[i] for i in selected_indices]
+
     monitor_t0 = time.perf_counter()
     task_timing = {}
-    is_single_input = isinstance(text, str)
-    if is_single_input:
+    # Bug-fix 5: offline mode may have converted a single string to a list
+    # already; guard against wrapping it a second time into a nested list.
+    if is_single_input and isinstance(text, str):
         texts = [text]
     elif isinstance(text, Sequence):
         texts = list(text)
@@ -224,7 +324,9 @@ def monitor(
             encoder=encoder,
             tokenizer=tokenizer,
             device=device,
-            hidden_size=hidden_size
+            hidden_size=hidden_size,
+            classifier_type=classifier_type,
+            classifier_kwargs=classifier_kwargs,
         )
         if task.optimizer is None:
             task.optimizer = optimizer or get_optimizer(task.classifier)

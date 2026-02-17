@@ -31,7 +31,7 @@ Tasks are managed by TaskRegistry and consumed by monitor().
 """
 import hashlib
 from .buffers import ReplayBufferManager
-from .models import Classifier
+from .models import build_classifier
 from .correctness import OnlineCorrectnessPredictor
 
 class Task:
@@ -42,7 +42,9 @@ class Task:
         encoder,
         tokenizer,
         device,
-        hidden_size
+        hidden_size,
+        classifier_type="mlp",
+        classifier_kwargs=None,
     ):
         self.task_id = task_id
         self.classes = classes
@@ -58,9 +60,11 @@ class Task:
         self.num_correctness_train_rounds = 0
         self.optimizer = None
         # === student classifier ===
-        self.classifier = Classifier(
+        self.classifier = build_classifier(
+            classifier_type=classifier_type,
             hidden_size=hidden_size,
-            num_labels=self.num_labels
+            num_labels=self.num_labels,
+            **(classifier_kwargs or {}),
         ).to(device)
 
         # === correctness predictor ===

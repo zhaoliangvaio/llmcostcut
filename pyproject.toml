@@ -62,6 +62,17 @@ package-dir = {"llmcompiler" = "."}
 [tool.setuptools.package-data]
 llmcompiler = ["LICENSE", "README.md", "QUICKSTART.md"]
 
+[tool.pytest.ini_options]
+filterwarnings = [
+    # PyTorch DataLoader pin_memory internally calls the deprecated
+    # Tensor.pin_memory(device) / Tensor.is_pinned(device) API in some
+    # versions; suppress both DeprecationWarning and the UserWarning about
+    # pin_memory_device that appears in other versions.
+    "ignore:The argument 'device' of Tensor.pin_memory\\(\\) is deprecated:DeprecationWarning",
+    "ignore:The argument 'device' of Tensor.is_pinned\\(\\) is deprecated:DeprecationWarning",
+    "ignore:pin_memory_device is deprecated:UserWarning",
+]
+
 [tool.black]
 line-length = 100
 target-version = ['py38', 'py39', 'py310', 'py311']
