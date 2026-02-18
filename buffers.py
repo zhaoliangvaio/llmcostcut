@@ -70,13 +70,6 @@ class RingBuffer:
         self.size = min(self.size + 1, self.capacity)
 
 
-    # def sample(self, batch=64):
-    #     maxidx = self.capacity if self.full else self.ptr
-    #     idxs = np.random.randint(0, maxidx, batch)
-    
-    #     # return a list of dicts
-    #     return [self.data[i] for i in idxs]
-
     def sample(self, batch=64, num_labels=4):
         """Balanced sampling across classes."""
 
