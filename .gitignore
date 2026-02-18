@@ -6,3 +6,6 @@ monitor_async_nonblock.py
 .pytest_cache/
 llmcompiler.egg-info/
 test/
+INSTALL.md
+QUICKSTART.md
+README_PACKAGE.md
