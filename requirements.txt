@@ -2,6 +2,9 @@
 torch>=1.9.0
 transformers>=4.20.0
 
+# Optional: OpenAI teacher (required by the default llm_fn)
+# openai>=1.0.0
+
 # Optional: development dependencies
 # pytest>=7.0.0
 # pytest-cov>=4.0.0

@@ -79,6 +79,7 @@ def basic_usage_example():
         text=text,
         llm_fn=your_llm_teacher,
         llm_kwargs=None,  # Extra parameters passed to llm_fn
+        mode="online",
         p_threshold=0.8,  # Confidence threshold; below this value it falls back to LLM
     )
     
@@ -125,10 +126,155 @@ def advanced_usage_example():
         tokenizer=tokenizer,
         device=device,
         hidden_size=hidden_size,
+        mode="online",
         p_threshold=0.75,  # Lower threshold, more frequent LLM fallback
     )
     
     return results, fallback
+
+
+# ============================================
+# Step 4b: All classifier type examples
+# ============================================
+def all_classifier_types_example():
+    """Demonstrate every available classifier_type.
+
+    All six architectures accept the same ``monitor()`` interface.
+    The head is created once on the first call and reused afterwards.
+    """
+    task_id2classes = setup_tasks()
+    text = "Scientists announced a major breakthrough in renewable energy."
+
+    # ── 1. mlp (default) ──────────────────────────────────────────────────────
+    # 2-layer MLP with GELU activation and dropout.  Good all-round baseline.
+    results_mlp, _ = monitor(
+        task_id2classes=task_id2classes,
+        text=text,
+        llm_fn=your_llm_teacher,
+        mode="online",
+        classifier_type="mlp",
+    )
+    print(f"[mlp]      {results_mlp}")
+
+    # ── 2. linear ─────────────────────────────────────────────────────────────
+    # Single linear layer – fastest inference, best when encoder is fine-tuned
+    # end-to-end or the task is linearly separable.
+    results_linear, _ = monitor(
+        task_id2classes=task_id2classes,
+        text=text,
+        llm_fn=your_llm_teacher,
+        mode="online",
+        classifier_type="linear",
+    )
+    print(f"[linear]   {results_linear}")
+
+    # ── 3. deep_mlp ───────────────────────────────────────────────────────────
+    # Configurable-depth MLP with residual connections and LayerNorm.
+    # Use num_layers to control depth; num_layers=1 degrades to a plain MLP.
+    results_deep, _ = monitor(
+        task_id2classes=task_id2classes,
+        text=text,
+        llm_fn=your_llm_teacher,
+        mode="online",
+        classifier_type="deep_mlp",
+        classifier_kwargs={"num_layers": 4, "dropout": 0.05},
+    )
+    print(f"[deep_mlp] {results_deep}")
+
+    # ── 4. cnn ────────────────────────────────────────────────────────────────
+    # Multi-scale 1-D CNN: parallel conv filters of different widths, global
+    # max-pool, then a linear projection.
+    results_cnn, _ = monitor(
+        task_id2classes=task_id2classes,
+        text=text,
+        llm_fn=your_llm_teacher,
+        mode="online",
+        classifier_type="cnn",
+        classifier_kwargs={"num_filters": 256, "kernel_sizes": (3, 5, 7, 9)},
+    )
+    print(f"[cnn]      {results_cnn}")
+
+    # ── 5. gnn ────────────────────────────────────────────────────────────────
+    # GNN-inspired head: partitions the CLS embedding into virtual graph nodes
+    # and runs attention-weighted message passing.
+    # Constraint: hidden_size (768 for distilbert) must be divisible by num_nodes.
+    results_gnn, _ = monitor(
+        task_id2classes=task_id2classes,
+        text=text,
+        llm_fn=your_llm_teacher,
+        mode="online",
+        classifier_type="gnn",
+        classifier_kwargs={"num_nodes": 8, "num_layers": 3},
+    )
+    print(f"[gnn]      {results_gnn}")
+
+    # ── 6. gcp ────────────────────────────────────────────────────────────────
+    # Graph of Concept Predictors: a DAG-structured head where each node
+    # represents a reasoning concept.  The topology is supplied as a list of
+    # directed (parent, child) edge pairs.
+    #
+    # Example graph: a linear chain  0 → 1 → 2 → 3
+    #   node 0: root (receives CLS embedding)
+    #   node 3: sink (contributes to the final prediction)
+    #
+    # During training, every node's concept predictor is trained simultaneously
+    # alongside the final head (concept-level supervision via forward_with_concepts).
+    results_gcp, _ = monitor(
+        task_id2classes=task_id2classes,
+        text=text,
+        llm_fn=your_llm_teacher,
+        mode="online",
+        classifier_type="gcp",
+        classifier_kwargs={
+            "edges": [(0, 1), (1, 2), (2, 3)],
+            "concept_dim": 256,
+            "use_resnet": True,
+            "dropout": 0.1,
+        },
+    )
+    print(f"[gcp]      {results_gcp}")
+
+    return {
+        "mlp": results_mlp,
+        "linear": results_linear,
+        "deep_mlp": results_deep,
+        "cnn": results_cnn,
+        "gnn": results_gnn,
+        "gcp": results_gcp,
+    }
+
+
+def gcp_branching_dag_example():
+    """GCPClassifier with a branching DAG: two root nodes merge at a shared node.
+
+    Graph topology::
+
+        0 ──→ 2 ──→ 3
+        1 ──→ 2
+
+    Nodes 0 and 1 are roots (no parents); node 2 receives both.
+    Node 3 is the sink whose embedding is projected to the final label.
+    """
+    task_id2classes = {"intent": ["question", "command", "statement", "greeting"]}
+
+    def mock_teacher(texts, task_id2classes, **kwargs):
+        return [{"intent": "question"} for _ in texts]
+
+    text = "Can you help me find the nearest coffee shop?"
+    result, fallback = monitor(
+        task_id2classes=task_id2classes,
+        text=text,
+        llm_fn=mock_teacher,
+        mode="online",
+        classifier_type="gcp",
+        classifier_kwargs={
+            "edges": [(0, 2), (1, 2), (2, 3)],
+            "concept_dim": 128,
+            "use_resnet": False,
+        },
+    )
+    print(f"[gcp branching DAG] intent={result['intent']}  fallback={fallback}")
+    return result, fallback
 
 
 # ============================================
@@ -152,6 +298,7 @@ def batch_processing_example():
             task_id2classes=task_id2classes,
             text=text,
             llm_fn=your_llm_teacher,
+            mode="online",
             p_threshold=0.8,
         )
         all_results.append(results)
@@ -188,6 +335,7 @@ class YourApplication:
             text=text,
             llm_fn=your_llm_teacher,
             llm_kwargs=llm_kwargs,
+            mode="online",
             p_threshold=0.8,
         )
         
@@ -226,3 +374,6 @@ if __name__ == "__main__":
     stats = app.get_statistics()
     print(f"Statistics: {stats}")
 
+    print("\n4. All classifier types example:")
+    all_classifier_types_example()    print("\n5. GCP branching DAG example:")
+    gcp_branching_dag_example()

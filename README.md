@@ -237,6 +237,21 @@ llmcompiler/
 └── requirements.txt     # Dependency list
 ```
 
+## Citation
+
+If you use this framework in your research, please cite:
+
+```bibtex
+@article{yu2026distilling,
+  title     = {Distilling {LLM} Reasoning into Graph of Concept Predictors},
+  author    = {Ziyang Yu and Liang Zhao},
+  journal   = {arXiv preprint arXiv:2602.03006},
+  year      = {2026},
+  url       = {https://arxiv.org/abs/2602.03006},
+  doi       = {10.48550/arXiv.2602.03006},
+}
+```
+
 ## Acknowledgements
 
 This framework was developed by the LLMCompiler team at Emory University.

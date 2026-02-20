@@ -58,6 +58,9 @@ class Task:
         self.last_correctness_train_step = 0
         self.last_correctness_train_labeled = 0
         self.num_correctness_train_rounds = 0
+        # Sub-module retraining state (GCP only; §3.4 arXiv:2602.03006)
+        self.last_submodule_retrain_step = 0
+        self.num_submodule_retrain_rounds = 0
         self.optimizer = None
         # === student classifier ===
         self.classifier = build_classifier(

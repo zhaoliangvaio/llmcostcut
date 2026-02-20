@@ -39,7 +39,7 @@ from concurrent.futures import ThreadPoolExecutor
 from torch.utils.data import DataLoader
 
 from .registry import TaskRegistry
-from .models import annotate_with_classifier
+from .models import annotate_with_classifier, CLASSIFIER_REGISTRY
 from .trainer import train_one_round_buff
 from .defaults import (
     get_device,
@@ -121,6 +121,8 @@ def monitor(
     optimizer=None,
     scheduler=None,
     p_threshold=0.8,
+    classifier_type="mlp",
+    classifier_kwargs=None,
 ):
     """
     Execute adaptive inference with automatic LLM distillation.
@@ -134,12 +136,18 @@ def monitor(
             Teacher function. Must return dict[task_id -> label].
         llm_kwargs (dict, optional):
             Extra arguments forwarded to llm_fn.
-
-
-
-            
         p_threshold (float):
             Minimum confidence to trust student prediction.
+        classifier_type (str):
+            Architecture of the student classification head.  One of
+            ``"mlp"`` (default), ``"linear"``, ``"deep_mlp"``, ``"cnn"``,
+            ``"gnn"``, or ``"gcp"``.  Only takes effect the *first* time a
+            task is seen; subsequent calls reuse the existing head.
+        classifier_kwargs (dict, optional):
+            Architecture-specific keyword arguments forwarded to the
+            selected classifier class.  For ``"gcp"`` the ``"edges"`` key
+            is required, e.g.
+            ``classifier_kwargs={"edges": [(0,1),(1,2),(2,3)]}``.
 
     Returns:
         results (dict[str, str] | list[dict[str, str]]):
@@ -152,6 +160,12 @@ def monitor(
         - Teacher calls are minimized automatically.
         - No gradients flow through the teacher.
     """
+    _VALID_CLASSIFIERS = sorted(CLASSIFIER_REGISTRY)
+    if classifier_type.lower() not in CLASSIFIER_REGISTRY:
+        raise ValueError(
+            f"'classifier_type' must be one of {_VALID_CLASSIFIERS}, "
+            f"got {classifier_type!r}."
+        )
     TRAIN_CLASSIFIER_EVERY = 50      # t steps
     TRAIN_CORRECTNESS_EVERY = 20     # t steps
     monitor_t0 = time.perf_counter()
@@ -207,7 +221,9 @@ def monitor(
             encoder=encoder,
             tokenizer=tokenizer,
             device=device,
-            hidden_size=hidden_size
+            hidden_size=hidden_size,
+            classifier_type=classifier_type,
+            classifier_kwargs=classifier_kwargs,
         )
         if task.optimizer is None:
             task.optimizer = optimizer or get_optimizer(task.classifier)
@@ -373,7 +389,7 @@ def monitor(
                 buf = task.buffers.get_buffer(task.workflow_id())
                 if buf.size > 0:
                     steps = _compute_steps(task.num_labeled)
-                    data = task.buffers.sample_for_training(task.workflow_id(),REPLAY_SAMPLE_SIZE)
+                    data = task.buffers.sample_for_training(task.workflow_id(), REPLAY_SAMPLE_SIZE, num_labels=task.num_labels)
                     running_future = _classifier_futures.get(task.task_id)
                     if running_future is None or running_future.done():
                         loader = DataLoader(
