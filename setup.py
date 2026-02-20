@@ -1,19 +1,16 @@
 """
 LLMCompiler installation script.
 
-Recommended installation (from parent directory):
-    cd /scratch1/zyu273/research-pilot
-    pip install -e ./llmcompiler
+Install in development mode (recommended):
+    pip install -e .
 
-Or install from the current directory:
-    cd llmcompiler
+From repository root:
+    cd /path/to/llmcompiler
     pip install -e .
 """
-
-from setuptools import setup
+from setuptools import setup, find_packages
 from pathlib import Path
 
-# Read README
 readme_file = Path(__file__).parent / "README.md"
 long_description = readme_file.read_text(encoding="utf-8") if readme_file.exists() else ""
 
@@ -27,9 +24,8 @@ setup(
     author_email="liang.zhao@emory.edu",
     url="https://github.com/emory-llmcompiler/llmcompiler",
     license="Apache 2.0",
-    # Package name is llmcompiler; package contents are in this directory
-    packages=["llmcompiler"],
-    package_dir={"llmcompiler": "."},
+    package_dir={"": "src"},
+    packages=find_packages(where="src"),
     python_requires=">=3.8",
     install_requires=[
         "torch>=1.9.0",

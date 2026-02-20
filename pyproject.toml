@@ -55,14 +55,15 @@ Documentation = "https://github.com/emory-llmcompiler/llmcompiler#readme"
 Repository = "https://github.com/emory-llmcompiler/llmcompiler"
 Issues = "https://github.com/emory-llmcompiler/llmcompiler/issues"
 
-[tool.setuptools]
-packages = ["llmcompiler"]
-package-dir = {"llmcompiler" = "."}
+[tool.setuptools.packages.find]
+where = ["src"]
 
-[tool.setuptools.package-data]
-llmcompiler = ["LICENSE", "README.md", "QUICKSTART.md"]
+[tool.setuptools]
+package-dir = {"" = "src"}
 
 [tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
 filterwarnings = [
     # PyTorch DataLoader pin_memory internally calls the deprecated
     # Tensor.pin_memory(device) / Tensor.is_pinned(device) API in some

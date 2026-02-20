@@ -42,6 +42,45 @@ from llmcompiler import monitor
 print("LLMCompiler installed successfully!")
 ```
 
+Or run the smoke test from the repo root: `python test_installation.py`
+
+
+## Project structure
+
+The repository follows a standard Python package layout:
+
+```
+llmcompiler/
+├── src/
+│   └── llmcompiler/          # main package
+│       __init__.py
+│       buffers.py            # replay buffer manager
+│       correctness.py        # correctness predictor
+│       defaults.py           # encoder/tokenizer/optimizer defaults
+│       models.py             # classifier heads (MLP, GCP, CNN, etc.)
+│       monitor.py            # core monitor() API
+│       monitor_async_nonblock.py
+│       registry.py            # task registry
+│       selector.py            # active-learning selection
+│       task.py                # task abstraction
+│       trainer.py             # training & submodule retraining
+├── tests/                     # pytest test suite
+│   test_monitor.py
+│   test_submodule_retrain.py
+│   test_agnews_all_models.py
+├── examples/                  # runnable examples
+│   usage.py                   # general usage walkthrough
+│   agnews_gcp.py              # AG-News + GCP classifier
+├── pyproject.toml
+├── setup.py
+├── README.md
+├── LICENSE
+├── requirements.txt
+└── test_installation.py       # quick install check
+```
+
+Install in development mode with `pip install -e .`; tests are run with `pytest tests/` from the repo root.
+
 
 ## Quick Start
 
@@ -77,7 +116,7 @@ print(f"Predictions: {results}")
 print(f"LLM fallback used: {fallback}")
 ```
 
-For a more complete walkthrough, see [`example_usage.py`](example_usage.py) and [`QUICKSTART.md`](QUICKSTART.md).
+For a more complete walkthrough, see [`examples/usage.py`](examples/usage.py) and [`QUICKSTART.md`](QUICKSTART.md).
 
 
 ## API Reference

@@ -1,0 +1,103 @@
+2026-02-20 15:51:08 [Train:topic:r1] steps=50 avg_loss=1.132033
+2026-02-20 15:51:08 [SubRetrain:topic:smr1] steps=30 avg_loss=1.703830 selected=[2]
+2026-02-20 15:51:09 [Train:topic:r1] steps=50 avg_loss=1.252322
+2026-02-20 15:51:09 [Train:topic:r2] steps=50 avg_loss=1.151988
+2026-02-20 15:51:10 [Train:topic:r3] steps=50 avg_loss=1.260605
+2026-02-20 15:51:10 [Train:topic:r4] steps=50 avg_loss=1.589361
+2026-02-20 15:51:10 [SubRetrain:topic:smr5] steps=30 avg_loss=0.777662 selected=[1]
+2026-02-20 15:51:11 [Train:topic:r11] steps=50 avg_loss=1.331297
+2026-02-20 15:51:11 [Train:topic:r12] steps=50 avg_loss=1.158660
+2026-02-20 15:51:12 [Train:topic:r13] steps=50 avg_loss=1.118670
+2026-02-20 15:51:12 [Train:topic:r14] steps=50 avg_loss=1.100197
+2026-02-20 15:51:12 [Train:topic:r15] steps=50 avg_loss=1.092835
+2026-02-20 15:51:13 [Train:topic:r16] steps=50 avg_loss=1.085665
+2026-02-20 15:51:13 [Train:topic:r17] steps=50 avg_loss=1.084659
+2026-02-20 15:51:15 [SubRetrain:topic:smr1] steps=30 avg_loss=0.724866 selected=[1]
+2026-02-20 15:51:16 [SubRetrain:topic:smr2] steps=30 avg_loss=0.718044 selected=[3]
+2026-02-20 15:51:16 [Train:topic:r5] steps=50 avg_loss=1.202975
+2026-02-20 15:51:17 [Train:topic:r6] steps=50 avg_loss=1.362411
+2026-02-20 15:51:17 [SubRetrain:topic:smr5] steps=30 avg_loss=0.792020 selected=[3]
+2026-02-20 15:51:17 [SubRetrain:topic:smr6] steps=30 avg_loss=0.673487 selected=[2]
+2026-02-20 15:51:18 [Train:topic:r13] steps=50 avg_loss=1.308266
+2026-02-20 15:51:18 [SubRetrain:topic:smr8] steps=30 avg_loss=0.699978 selected=[1]
+2026-02-20 15:51:19 [Train:topic:r17] steps=50 avg_loss=1.304640
+2026-02-20 15:51:19 [Train:topic:r18] steps=50 avg_loss=1.352831
+2026-02-20 15:51:19 [SubRetrain:topic:smr11] steps=30 avg_loss=0.677966 selected=[0]
+2026-02-20 15:51:20 [Train:topic:r23] steps=50 avg_loss=1.212653
+2026-02-20 15:51:20 [Train:topic:r24] steps=50 avg_loss=1.241195
+2026-02-20 15:51:21 [SubRetrain:topic:smr1] steps=30 avg_loss=0.836284 selected=[0]
+2026-02-20 15:51:21 [Train:topic:r25] steps=50 avg_loss=1.251980
+2026-02-20 15:51:22 [Train:topic:r1] steps=50 avg_loss=1.227996
+2026-02-20 15:51:23 [Train:topic:r2] steps=50 avg_loss=1.084970
+2026-02-20 15:51:23 [Train:sentiment:r1] steps=50 avg_loss=0.660366
+2026-02-20 15:51:24 [Train:topic:r1] steps=50 avg_loss=1.131911
+2026-02-20 15:51:24 [Train:topic:r1] steps=50 avg_loss=1.157321
+2026-02-20 15:51:25 [Train:sentiment:r1] steps=50 avg_loss=0.262119
+2026-02-20 15:51:25 [Train:sentiment:r2] steps=50 avg_loss=0.209185
+2026-02-20 15:51:25 [Train:topic:r1] steps=50 avg_loss=1.146006
+2026-02-20 15:52:15 [Train:topic:r1] steps=50 avg_loss=1.118350
+2026-02-20 15:52:15 [SubRetrain:topic:smr1] steps=30 avg_loss=1.569986 selected=[3]
+2026-02-20 15:52:16 [Train:topic:r1] steps=50 avg_loss=1.286282
+2026-02-20 15:52:16 [Train:topic:r2] steps=50 avg_loss=1.965226
+2026-02-20 15:52:17 [Train:topic:r3] steps=50 avg_loss=1.539349
+2026-02-20 15:52:17 [Train:topic:r4] steps=50 avg_loss=1.399191
+2026-02-20 15:52:17 [Train:topic:r5] steps=50 avg_loss=1.570565
+2026-02-20 15:52:18 [SubRetrain:topic:smr5] steps=30 avg_loss=0.819342 selected=[2]
+2026-02-20 15:52:18 [Train:topic:r11] steps=50 avg_loss=1.425343
+2026-02-20 15:52:18 [Train:topic:r12] steps=50 avg_loss=1.435819
+2026-02-20 15:52:19 [Train:topic:r13] steps=50 avg_loss=1.347798
+2026-02-20 15:52:19 [Train:topic:r14] steps=50 avg_loss=1.325126
+2026-02-20 15:52:19 [Train:topic:r15] steps=50 avg_loss=1.302587
+2026-02-20 15:52:20 [Train:topic:r16] steps=50 avg_loss=1.277688
+2026-02-20 15:52:20 [Train:topic:r17] steps=50 avg_loss=1.243848
+2026-02-20 15:52:20 [Train:topic:r18] steps=50 avg_loss=1.226441
+2026-02-20 15:52:21 [Train:topic:r19] steps=50 avg_loss=1.240485
+2026-02-20 15:52:23 [SubRetrain:topic:smr1] steps=30 avg_loss=0.717511 selected=[3]
+2026-02-20 15:52:23 [Train:topic:r3] steps=50 avg_loss=1.141797
+2026-02-20 15:52:24 [Train:topic:r4] steps=50 avg_loss=1.634647
+2026-02-20 15:52:24 [SubRetrain:topic:smr4] steps=30 avg_loss=0.722321 selected=[3]
+2026-02-20 15:52:24 [Train:topic:r9] steps=50 avg_loss=1.354651
+2026-02-20 15:52:25 [SubRetrain:topic:smr6] steps=30 avg_loss=0.736780 selected=[1]
+2026-02-20 15:52:25 [Train:topic:r13] steps=50 avg_loss=1.382792
+2026-02-20 15:52:26 [Train:topic:r14] steps=50 avg_loss=1.348562
+2026-02-20 15:52:26 [Train:topic:r15] steps=50 avg_loss=1.193568
+2026-02-20 15:52:26 [Train:topic:r16] steps=50 avg_loss=1.272493
+2026-02-20 15:52:27 [Train:topic:r17] steps=50 avg_loss=1.325405
+2026-02-20 15:52:27 [Train:topic:r18] steps=50 avg_loss=1.273467
+2026-02-20 15:52:27 [Train:topic:r19] steps=50 avg_loss=1.290731
+2026-02-20 15:52:28 [Train:topic:r20] steps=50 avg_loss=1.331912
+2026-02-20 15:52:29 [SubRetrain:topic:smr1] steps=30 avg_loss=0.844533 selected=[0]
+2026-02-20 15:52:29 [Train:topic:r21] steps=50 avg_loss=1.400730
+2026-02-20 15:52:29 [Train:topic:r22] steps=50 avg_loss=1.403807
+2026-02-20 15:52:30 [Train:topic:r23] steps=50 avg_loss=1.334065
+2026-02-20 15:52:31 [Train:sentiment:r1] steps=50 avg_loss=0.627970
+2026-02-20 15:52:31 [Train:topic:r24] steps=50 avg_loss=1.426705
+2026-02-20 15:52:31 [Train:topic:r25] steps=50 avg_loss=1.449956
+2026-02-20 15:52:32 [Train:topic:r1] steps=50 avg_loss=1.175988
+2026-02-20 15:52:32 [Train:sentiment:r1] steps=50 avg_loss=0.256509
+2026-02-20 15:52:32 [Train:sentiment:r2] steps=50 avg_loss=0.225640
+2026-02-20 15:52:32 [Train:topic:r2] steps=50 avg_loss=1.097882
+2026-02-20 15:52:32 [Train:sentiment:r3] steps=50 avg_loss=0.201876
+2026-02-20 15:52:33 [Train:topic:r1] steps=50 avg_loss=1.144929
+2026-02-20 15:52:34 [Train:topic:r1] steps=50 avg_loss=1.161009
+2026-02-20 15:52:34 [Train:topic:r1] steps=50 avg_loss=1.151429
+2026-02-20 15:52:35 [Train:topic:r1] steps=50 avg_loss=1.160625
+2026-02-20 15:52:35 [Train:topic:r1] steps=50 avg_loss=1.161661
+2026-02-20 15:52:35 [Train:sentiment:r1] steps=50 avg_loss=0.570064
+2026-02-20 15:52:36 [Train:topic:r1] steps=50 avg_loss=0.504041
+2026-02-20 15:52:36 [Train:sentiment:r2] steps=50 avg_loss=0.498572
+2026-02-20 15:52:36 [Train:topic:r2] steps=50 avg_loss=0.355238
+2026-02-20 15:52:36 [Train:topic:r3] steps=50 avg_loss=0.351079
+2026-02-20 15:52:36 [Train:sentiment:r3] steps=50 avg_loss=0.515435
+2026-02-20 15:52:37 [Train:sentiment:r4] steps=50 avg_loss=0.510538
+2026-02-20 15:52:37 [SubRetrain:sentiment:smr1] steps=30 avg_loss=0.351963 selected=[0]
+2026-02-20 15:52:37 [Train:sentiment:r2] steps=50 avg_loss=0.704595
+2026-02-20 15:52:37 [Train:sentiment:r1] steps=50 avg_loss=0.221012
+2026-02-20 15:52:37 [Train:sentiment:r2] steps=50 avg_loss=0.198560
+2026-02-20 15:52:37 [Train:sentiment:r3] steps=50 avg_loss=0.198540
+2026-02-20 15:52:38 [Train:sentiment:r4] steps=50 avg_loss=0.198857
+2026-02-20 15:52:38 [Train:sentiment:r1] steps=50 avg_loss=0.558941
+2026-02-20 15:52:38 [Train:sentiment:r2] steps=50 avg_loss=0.502473
+2026-02-20 15:52:38 [Train:sentiment:r3] steps=50 avg_loss=0.525484
+2026-02-20 15:52:39 [SubRetrain:sentiment:smr1] steps=30 avg_loss=0.671199 selected=[2]
+2026-02-20 15:52:39 [Train:sentiment:r4] steps=50 avg_loss=0.516764
