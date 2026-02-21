@@ -90,6 +90,7 @@ class OnlineCorrectnessPredictor:
             _ = torch.zeros(1, device=self.device)
             torch.cuda.synchronize(self.device)
             _CUDA_READY = True
+
     def _knn_dist(self, encoding, memory, k=5):
         if len(memory) == 0:
             return torch.tensor(0.0, device=self.device)
@@ -97,6 +98,7 @@ class OnlineCorrectnessPredictor:
         dists = torch.norm(encoding.unsqueeze(0) - memory_tensor, dim=1)
         k = min(k, len(dists))
         return dists.topk(k, largest=False).values.mean()
+    
     def _mahalanobis(self, encoding):
         # Keep this path numerically/thread stable under heavy concurrency.
         # With current defaults enc_cov is identity (not updated online), so
@@ -140,16 +142,6 @@ class OnlineCorrectnessPredictor:
             dist_correct.item(), dist_wrong.item(),
             knn_correct.item(), knn_wrong.item(), mahal.item()
         ], dtype=torch.float32, device=self.device)
-
-        # feat = torch.tensor([
-        #     p_max.item(),
-        #     margin.item(),
-        #     entropy.item(),
-        #     enc_norm.item(),
-        #     len_norm,
-        #     dist_correct.item(),
-        #     dist_wrong.item()
-        # ], device=self.device)
 
         return feat
 

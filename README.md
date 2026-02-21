@@ -169,6 +169,7 @@ These parameters are only used when `mode="offline"`.
 | `optimizer` | auto | Custom optimizer for the student classifier. |
 | `scheduler` | `None` | Learning-rate scheduler passed to the training loop. |
 | `llm_kwargs` | `{}` | Extra keyword arguments forwarded to `llm_fn`. |
+| `submodule_retrain_top_k` | `None` | Number of concept nodes to select for targeted sub-module retraining (§3.4 of [arXiv:2602.03006](https://arxiv.org/abs/2602.03006)). Only applicable when `classifier_type="gcp"`. When `None`, falls back to the module-level default. |
 
 ##### `classifier_kwargs` by Architecture
 
