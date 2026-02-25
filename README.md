@@ -44,6 +44,8 @@ Optional (for the built-in OpenAI teacher and examples such as `agnews_gcp.py`):
 - `python-dotenv>=1.0.0`
 - `pydantic>=2.0.0`
 
+When using the built-in OpenAI teacher, set your API key so the framework can call the LLM. Either put `OPENAI_API_KEY=your-key-here` in a `.env` file in the project root (loaded automatically if `python-dotenv` is installed), or export it in your environment: `export OPENAI_API_KEY=your-key-here`.
+
 ### Verify installation
 
 ```python
