@@ -90,35 +90,10 @@ Install in development mode with `pip install -e .`. If present, run tests with 
 
 ## Quick start
 
-```python
-from llmcompiler import monitor
+See the **[examples/](examples/)** directory for runnable usage:
 
-# 1. (Optional) Define your teacher LLM function.
-#    If omitted, monitor uses a built-in OpenAI-based teacher (requires OPENAI_API_KEY).
-def my_llm(texts, task_id2classes, **kwargs):
-    # texts: list[str]; return one dict per input: list[{task_id: predicted_label}]
-    return [{"sentiment": "positive", "topic": "technology"} for _ in texts]
-
-# 2. Define tasks and class labels
-task_id2classes = {
-    "sentiment": ["positive", "negative", "neutral"],
-    "topic": ["sports", "politics", "technology"],
-}
-
-# 3. Run classification (mode is required: "online" or "offline")
-results, fallback = monitor(
-    task_id2classes=task_id2classes,
-    text="I love this new phone!",
-    llm_fn=my_llm,
-    mode="online",
-    p_threshold=0.8,
-)
-
-print("Predictions:", results)
-print("LLM fallback used:", fallback)
-```
-
-For a full walkthrough, see [`examples/usage.py`](examples/usage.py). For AG-News with the Graph of Concept Predictors (GCP) and concept-level labels, see [`examples/agnews_gcp.py`](examples/agnews_gcp.py).
+- **[examples/usage.py](examples/usage.py)** — general walkthrough (basic usage, classifier types, batch processing, GCP).
+- **[examples/agnews_gcp.py](examples/agnews_gcp.py)** — AG-News with GCP classifier and concept-level labels (online/offline).
 
 
 ## API reference
