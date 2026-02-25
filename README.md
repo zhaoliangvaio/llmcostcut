@@ -217,4 +217,4 @@ If you use this framework in your research, please cite:
 
 ## Acknowledgements
 
-This framework was developed by the LLMCompiler team at Emory University. We thank collaborators and students for feedback. The design draws on work in online learning, knowledge distillation, and adaptive inference.
+This framework was developed by the team led by Prof. Liang Zhao at Emory University. We thank collaborators and students for feedback. The design draws on work in online learning, knowledge distillation, and adaptive inference.
