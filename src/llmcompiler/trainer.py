@@ -16,7 +16,7 @@ Liang Zhao (liang.zhao@emory.edu)
 """
 import torch
 import torch.nn as nn
-from typing import Dict, List
+from typing import Dict, List, Optional
 from .models import GCPClassifier
 
 
@@ -76,17 +76,24 @@ def train_one_round_buff(
 
         if is_gcp:
             final_logits, concept_logits = classifier.forward_with_concepts(batch['encoding'])
-            loss = criterion(final_logits, labels)
+            # Build loss as sum(terms) to avoid in-place / version issues when the same
+            # parameters (e.g. concept predictor weight views) are used in multiple branches.
+            loss_terms = [criterion(final_logits, labels)]
             # concept_labels shape: [B, num_nodes] when stored by monitor();
             # None (key absent) when no concept_label_fn was registered – fall
             # back to the final task label for every node (original behaviour).
             concept_label_batch = batch.get('concept_labels')  # [B, num_nodes] | None
+            if concept_label_batch is None:
+                raise ValueError("concept_label_batch is None")
             for node_idx, clogits in enumerate(concept_logits):
-                if concept_label_batch is not None and node_idx < concept_label_batch.shape[1]:
+                if node_idx < concept_label_batch.shape[1]:
                     node_labels = concept_label_batch[:, node_idx].long().to(clogits.device)
                 else:
-                    node_labels = labels
-                loss = loss + concept_loss_weight * criterion(clogits, node_labels)
+                    raise ValueError(f"node_idx {node_idx} is out of range for concept_label_batch with shape {concept_label_batch.shape}")
+                loss_terms.append(
+                    concept_loss_weight * criterion(clogits, node_labels)
+                )
+            loss = sum(loss_terms)
         else:
             logits = classifier(batch['encoding'])
             loss = criterion(logits, labels)
@@ -136,30 +143,32 @@ def compute_node_counterfactual_scores(
     encoding: torch.Tensor,
     labels: torch.Tensor,
     criterion: nn.Module,
+    concept_labels: Optional[torch.Tensor] = None,
 ) -> List[float]:
     """Compute the counterfactual impact score Δ̂_i for every concept node.
 
-    For each node *i*, its embedding is zeroed out and the final-task loss is
-    re-evaluated on the provided mini-batch.  Downstream nodes that depend on
-    node *i* are re-propagated using the ablated (zero) embedding, so the
-    effect propagates through the entire subgraph rooted at *i*.
+    For each node *i*, its embedding is replaced (not zeroed): when
+    *concept_labels* is provided (LLM-annotated 0/1 per node), the node
+    embedding is set to the concept predictor's weight row for that label,
+    i.e. the "canonical" embedding for that concept value; otherwise the node
+    is zeroed.  Downstream nodes are re-propagated from the intervened
+    embeddings.  The score is::
 
-    The score is defined as::
-
-        Δ̂_i = L_ablated_i − L_full
+        Δ̂_i = L_intervened_i − L_full
 
     A **large positive** Δ̂_i indicates that node *i* is a high-impact
-    predictor (removing it substantially increases the final loss).  A near-zero
-    or negative score means the node has little influence on the current batch.
-
-    The model is temporarily switched to eval mode so that dropout is
-    deterministic; the original training/eval state is restored on return.
+    predictor.  The model is temporarily switched to eval mode so that
+    dropout is deterministic; the original state is restored on return.
 
     Args:
         classifier: A :class:`~llmcompiler.models.GCPClassifier` instance.
         encoding:   CLS embeddings ``[B, hidden_size]`` on the correct device.
-        labels:     Ground-truth label indices ``[B]``.
+        labels:     Ground-truth (final task) label indices ``[B]``.
         criterion:  Loss function used to score the final task logits.
+        concept_labels: Optional ``[B, num_nodes]`` int tensor of 0/1 concept
+            labels from the teacher (LLM).  When provided, the intervened
+            embedding for node j is the predictor weight row for
+            concept_labels[b, j] per sample b; when absent, node is zeroed.
 
     Returns:
         List of float Δ̂_i values, one per node in topological order.
@@ -189,6 +198,10 @@ def compute_node_counterfactual_scores(
     # ── One ablation pass per node ───────────────────────────────────────
     scores: List[float] = []
     for ablate_j in classifier._topo_order:
+        # Skip sink nodes (they are the "last output" inputs to final_classifier).
+        if ablate_j in classifier._sink_nodes:
+            scores.append(-float("inf"))
+            continue
         # BFS: collect ablate_j and all of its descendants
         affected: set = {ablate_j}
         frontier = [ablate_j]
@@ -203,7 +216,17 @@ def compute_node_counterfactual_scores(
         node_emb_abl: Dict[int, torch.Tensor] = {}
         for j in classifier._topo_order:
             if j == ablate_j:
-                node_emb_abl[j] = torch.zeros(B, classifier.concept_dim, device=device)
+                if (
+                    concept_labels is not None
+                    and j < concept_labels.shape[1]
+                ):
+                    lbl_j = concept_labels[:, j].long().to(device)
+                    # concept_predictors[j].weight: (num_labels, concept_dim)
+                    node_emb_abl[j] = classifier.concept_predictors[j].weight[
+                        lbl_j
+                    ].detach()
+                else:
+                    raise ValueError(f"node_idx {j} is out of range for concept_labels with shape {concept_labels.shape}")
             elif j not in affected:
                 node_emb_abl[j] = node_emb_full[j]
             else:
@@ -246,8 +269,8 @@ def submodule_retrain(
     2. **Select** — choose the top-K nodes with the largest Δ̂_i (most
        influential; see Theorem 3.3 in the paper).
     3. **Freeze** — set ``requires_grad=False`` for all parameters except
-       those belonging to the selected nodes and the shared
-       ``final_classifier``.
+       those belonging to the selected nodes (only the selected nodes are
+       trained; ``final_classifier`` stays frozen).
     4. **Retrain** — run *steps* gradient updates, computing the final task
        loss plus the concept-level losses for selected nodes only.
     5. **Restore** — re-enable gradients for all parameters.
@@ -289,7 +312,14 @@ def submodule_retrain(
     # ── Step 1: Counterfactual impact scores ─────────────────────────────
     enc_sc = scoring_batch["encoding"].to(device)
     lbl_sc = scoring_batch["label"].to(device)
-    scores = compute_node_counterfactual_scores(classifier, enc_sc, lbl_sc, criterion)
+    concept_sc = scoring_batch.get("concept_labels")
+    if concept_sc is not None:
+        concept_sc = concept_sc.to(device)
+    else:
+        raise ValueError("concept_sc is None")
+    scores = compute_node_counterfactual_scores(
+        classifier, enc_sc, lbl_sc, criterion, concept_labels=concept_sc
+    )
 
     # ── Step 2: Select top-K nodes (Theorem 3.3) ─────────────────────────
     topo_order = classifier._topo_order
@@ -301,16 +331,12 @@ def submodule_retrain(
     score_summary = {n: round(s, 4) for n, s in zip(topo_order, scores)}
     print(f"{prefix} scores={score_summary} selected={selected_list}")
 
-    # ── Step 3: Freeze all; unfreeze selected nodes + final_classifier ───
+    # ── Step 3: Freeze all; unfreeze only selected node parameters ───────
     for p in classifier.parameters():
         p.requires_grad_(False)
     for node_idx in selected_nodes:
         for p in _iter_node_params(classifier, node_idx):
             p.requires_grad_(True)
-    # The final_classifier aggregates sink-node embeddings; keep it active so
-    # the task-loss gradient can flow back through the updated concept nodes.
-    for p in classifier.final_classifier.parameters():
-        p.requires_grad_(True)
 
     # ── Step 4: Targeted gradient updates ────────────────────────────────
     classifier.train()
@@ -331,12 +357,10 @@ def submodule_retrain(
         b_labels = batch["label"]
         concept_label_batch = batch.get("concept_labels")
 
-        final_logits, concept_logits = classifier.forward_with_concepts(batch["encoding"])
+        _, concept_logits = classifier.forward_with_concepts(batch["encoding"])
 
-        # Final task loss (gradients flow through all concept node embeddings)
-        loss = criterion(final_logits, b_labels)
-
-        # Concept-level loss only for the selected nodes
+        # Concept-level loss only for the selected nodes (no final prediction loss).
+        loss_terms = []
         for node_idx in selected_nodes:
             pos = topo_pos[node_idx]
             clogits = concept_logits[pos]
@@ -344,7 +368,10 @@ def submodule_retrain(
                 node_labels = concept_label_batch[:, pos].long().to(clogits.device)
             else:
                 node_labels = b_labels
-            loss = loss + concept_loss_weight * criterion(clogits, node_labels)
+            loss_terms.append(
+                concept_loss_weight * criterion(clogits, node_labels)
+            )
+        loss = sum(loss_terms)
 
         running_loss += float(loss.item())
         loss.backward()

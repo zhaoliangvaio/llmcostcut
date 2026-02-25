@@ -134,43 +134,19 @@ def advanced_usage_example():
 
 
 # ============================================
-# Step 4b: All classifier type examples
+# Step 4b: Classifier type examples (DeepMLP and GCP)
 # ============================================
 def all_classifier_types_example():
-    """Demonstrate every available classifier_type.
+    """Demonstrate the two available classifier types: deep_mlp and gcp.
 
-    All six architectures accept the same ``monitor()`` interface.
+    Both architectures accept the same ``monitor()`` interface.
     The head is created once on the first call and reused afterwards.
     """
     task_id2classes = setup_tasks()
     text = "Scientists announced a major breakthrough in renewable energy."
 
-    # ── 1. mlp (default) ──────────────────────────────────────────────────────
-    # 2-layer MLP with GELU activation and dropout.  Good all-round baseline.
-    results_mlp, _ = monitor(
-        task_id2classes=task_id2classes,
-        text=text,
-        llm_fn=your_llm_teacher,
-        mode="online",
-        classifier_type="mlp",
-    )
-    print(f"[mlp]      {results_mlp}")
-
-    # ── 2. linear ─────────────────────────────────────────────────────────────
-    # Single linear layer – fastest inference, best when encoder is fine-tuned
-    # end-to-end or the task is linearly separable.
-    results_linear, _ = monitor(
-        task_id2classes=task_id2classes,
-        text=text,
-        llm_fn=your_llm_teacher,
-        mode="online",
-        classifier_type="linear",
-    )
-    print(f"[linear]   {results_linear}")
-
-    # ── 3. deep_mlp ───────────────────────────────────────────────────────────
+    # ── 1. deep_mlp (default) ──────────────────────────────────────────────────
     # Configurable-depth MLP with residual connections and LayerNorm.
-    # Use num_layers to control depth; num_layers=1 degrades to a plain MLP.
     results_deep, _ = monitor(
         task_id2classes=task_id2classes,
         text=text,
@@ -181,34 +157,7 @@ def all_classifier_types_example():
     )
     print(f"[deep_mlp] {results_deep}")
 
-    # ── 4. cnn ────────────────────────────────────────────────────────────────
-    # Multi-scale 1-D CNN: parallel conv filters of different widths, global
-    # max-pool, then a linear projection.
-    results_cnn, _ = monitor(
-        task_id2classes=task_id2classes,
-        text=text,
-        llm_fn=your_llm_teacher,
-        mode="online",
-        classifier_type="cnn",
-        classifier_kwargs={"num_filters": 256, "kernel_sizes": (3, 5, 7, 9)},
-    )
-    print(f"[cnn]      {results_cnn}")
-
-    # ── 5. gnn ────────────────────────────────────────────────────────────────
-    # GNN-inspired head: partitions the CLS embedding into virtual graph nodes
-    # and runs attention-weighted message passing.
-    # Constraint: hidden_size (768 for distilbert) must be divisible by num_nodes.
-    results_gnn, _ = monitor(
-        task_id2classes=task_id2classes,
-        text=text,
-        llm_fn=your_llm_teacher,
-        mode="online",
-        classifier_type="gnn",
-        classifier_kwargs={"num_nodes": 8, "num_layers": 3},
-    )
-    print(f"[gnn]      {results_gnn}")
-
-    # ── 6. gcp ────────────────────────────────────────────────────────────────
+    # ── 2. gcp ────────────────────────────────────────────────────────────────
     # Graph of Concept Predictors: a DAG-structured head where each node
     # represents a reasoning concept.  The topology is supplied as a list of
     # directed (parent, child) edge pairs.
@@ -235,11 +184,7 @@ def all_classifier_types_example():
     print(f"[gcp]      {results_gcp}")
 
     return {
-        "mlp": results_mlp,
-        "linear": results_linear,
         "deep_mlp": results_deep,
-        "cnn": results_cnn,
-        "gnn": results_gnn,
         "gcp": results_gcp,
     }
 
@@ -374,6 +319,7 @@ if __name__ == "__main__":
     stats = app.get_statistics()
     print(f"Statistics: {stats}")
 
-    print("\n4. All classifier types example:")
-    all_classifier_types_example()    print("\n5. GCP branching DAG example:")
+    print("\n4. Classifier types example (deep_mlp and gcp):")
+    all_classifier_types_example()
+    print("\n5. GCP branching DAG example:")
     gcp_branching_dag_example()

@@ -1,0 +1,35 @@
+Loading AG-News (train only) …
+  samples=120,000  (3.3s)
+
+Concept nodes: mentions_person, mentions_org, mentions_location, mentions_country, mentions_company ...
+
+┌────────────────────────────────────────────────────────────────┐
+│  Demo 1 – Online Distillation with Concept Supervision         │
+└────────────────────────────────────────────────────────────────┘
+
+  [data] 120000 samples  p_threshold=0.8
+[Train:topic:r1] steps=50 avg_loss=5.413476
+[Train:topic:r2] steps=50 avg_loss=5.263088
+[SubRetrain:topic:smr1] scores={0: 0.0005, 1: -0.0, 2: 0.0002, 3: -0.0001, 4: 0.0, 5: 0.0001, 6: 0.0, 7: -0.0002, 8: 0.0003, 9: 0.0002, 10: 0.0001, 11: 0.0003, 12: 0.0, 13: 0.0002, 14: 0.0, 15: 0.0003, 16: -0.0, 17: 0.0002, 18: -0.0001, 19: 0.0001, 20: 0.0001, 21: -0.0, 22: 0.0001, 23: 0.0001, 24: -inf} selected=[0]
+[SubRetrain:topic:smr1] steps=3 avg_loss=0.189380 selected=[0]
+[Train:topic:r3] steps=50 avg_loss=5.111135
+[Train:topic:r4] steps=50 avg_loss=5.066255
+[SubRetrain:topic:smr2] scores={0: 0.0001, 1: 0.0008, 2: -0.0002, 3: 0.0003, 4: 0.0, 5: -0.0001, 6: 0.0002, 7: 0.0014, 8: 0.0, 9: 0.0001, 10: 0.0002, 11: 0.0006, 12: -0.0001, 13: -0.0, 14: 0.0001, 15: -0.0001, 16: -0.0001, 17: -0.0002, 18: 0.0, 19: 0.0, 20: 0.0001, 21: -0.0, 22: 0.0, 23: 0.0001, 24: -inf} selected=[7]
+[SubRetrain:topic:smr2] steps=3 avg_loss=0.192710 selected=[7]
+[Train:topic:r5] steps=50 avg_loss=5.322165
+[Train:topic:r6] steps=50 avg_loss=5.181262
+[SubRetrain:topic:smr3] scores={0: 0.0001, 1: 0.0002, 2: 0.0001, 3: 0.0, 4: -0.0, 5: 0.0, 6: 0.0002, 7: 0.0005, 8: 0.0003, 9: 0.0001, 10: 0.0001, 11: 0.0004, 12: 0.0003, 13: 0.0003, 14: 0.0, 15: 0.0006, 16: 0.0, 17: 0.0002, 18: 0.0, 19: 0.0001, 20: 0.0001, 21: 0.0, 22: 0.0001, 23: 0.0, 24: -inf} selected=[15]
+[SubRetrain:topic:smr3] steps=3 avg_loss=0.191633 selected=[15]
+[Train:topic:r7] steps=50 avg_loss=5.217146
+[Train:topic:r8] steps=50 avg_loss=5.253643
+[SubRetrain:topic:smr4] scores={0: 0.0001, 1: 0.0004, 2: -0.0, 3: 0.0002, 4: -0.0, 5: 0.0, 6: 0.0007, 7: 0.0012, 8: 0.0004, 9: -0.0, 10: -0.0, 11: 0.0008, 12: 0.0002, 13: 0.0003, 14: -0.0, 15: 0.0002, 16: 0.0002, 17: -0.0002, 18: 0.0003, 19: -0.0, 20: -0.0, 21: -0.0, 22: 0.0002, 23: -0.0, 24: -inf} selected=[7]
+[SubRetrain:topic:smr4] steps=3 avg_loss=0.195784 selected=[7]
+[Train:topic:r9] steps=50 avg_loss=5.174981
+[Train:topic:r10] steps=50 avg_loss=5.208826
+[SubRetrain:topic:smr5] scores={0: 0.0001, 1: 0.0004, 2: 0.0001, 3: 0.0, 4: 0.0, 5: 0.0001, 6: 0.0007, 7: 0.0007, 8: 0.0005, 9: 0.0001, 10: 0.0001, 11: 0.001, 12: 0.0001, 13: 0.0003, 14: 0.0, 15: 0.0003, 16: 0.0002, 17: 0.0001, 18: 0.0003, 19: 0.0, 20: 0.0, 21: 0.0, 22: 0.0003, 23: 0.0, 24: -inf} selected=[11]
+[SubRetrain:topic:smr5] steps=3 avg_loss=0.195742 selected=[11]
+[Train:topic:r11] steps=50 avg_loss=5.222557
+Fallback rate: 21.6%
+[Train:topic:r12] steps=50 avg_loss=5.292967
+[SubRetrain:topic:smr6] scores={0: -0.0002, 1: 0.0032, 2: -0.0003, 3: -0.0001, 4: 0.0045, 5: 0.0005, 6: 0.0037, 7: 0.0013, 8: -0.0001, 9: -0.0005, 10: -0.0004, 11: 0.0002, 12: -0.0003, 13: -0.0005, 14: -0.0002, 15: -0.0004, 16: 0.0019, 17: -0.0005, 18: 0.0032, 19: 0.0003, 20: 0.0002, 21: 0.0006, 22: 0.0015, 23: -0.0002, 24: -inf} selected=[4]
+[SubRetrain:topic:smr6] steps=3 avg_loss=0.191783 selected=[4]

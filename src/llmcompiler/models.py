@@ -23,50 +23,6 @@ from typing import Dict, List, Optional, Sequence, Tuple, Type
 # Classification head architectures
 # ---------------------------------------------------------------------------
 
-class Classifier(nn.Module):
-    """Lightweight 2-layer MLP classification head over frozen-encoder CLS embeddings.
-
-    This is the default ``"mlp"`` architecture and is kept for backward
-    compatibility.  Prefer using :func:`build_classifier` with
-    ``classifier_type="mlp"`` in new code.
-    """
-
-    def __init__(self, hidden_size: int = 768, num_labels: int = 4):
-        super().__init__()
-        self.dropout = nn.Dropout(0.1)
-        self.dense = nn.Linear(hidden_size, hidden_size)
-        self.activation = nn.GELU()
-        self.classifier = nn.Linear(hidden_size, num_labels)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Forward pass: classify encoder features."""
-        x = self.dropout(x)
-        x = self.dense(x)
-        x = self.activation(x)
-        x = self.dropout(x)
-        return self.classifier(x)
-
-
-# Alias so existing code that imports ``Classifier`` directly still works.
-MLPClassifier = Classifier
-
-
-class LinearClassifier(nn.Module):
-    """Single-layer linear classification head (no hidden layer).
-
-    The simplest possible head – useful as a fast baseline or when the
-    encoder is fine-tuned end-to-end.
-    """
-
-    def __init__(self, hidden_size: int = 768, num_labels: int = 4, dropout: float = 0.1):
-        super().__init__()
-        self.dropout = nn.Dropout(dropout)
-        self.classifier = nn.Linear(hidden_size, num_labels)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.classifier(self.dropout(x))
-
-
 class DeepMLPClassifier(nn.Module):
     """Configurable deep MLP classification head with residual connections.
 
@@ -106,128 +62,6 @@ class DeepMLPClassifier(nn.Module):
             x = norm(x + residual)  # residual connection
         x = self.dropout(x)
         return self.classifier(x)
-
-
-class CNNClassifier(nn.Module):
-    """1-D multi-scale CNN classification head over CLS embeddings.
-
-    Treats the ``hidden_size``-dim embedding as a 1-D signal with a single
-    input channel, applies parallel convolutional filters of different kernel
-    sizes, global-max-pools each feature map, concatenates, and projects to
-    the output space.
-
-    Args:
-        hidden_size (int): Dimension of the input CLS embedding.
-        num_labels (int): Number of output classes.
-        num_filters (int): Number of filters per kernel size.
-        kernel_sizes (tuple[int, ...]): Kernel widths for parallel conv branches.
-        dropout (float): Dropout probability.
-    """
-
-    def __init__(
-        self,
-        hidden_size: int = 768,
-        num_labels: int = 4,
-        num_filters: int = 128,
-        kernel_sizes: Tuple[int, ...] = (3, 5, 7),
-        dropout: float = 0.1,
-    ):
-        super().__init__()
-        self.dropout = nn.Dropout(dropout)
-        self.activation = nn.GELU()
-
-        # in_channels=1 because we unsqueeze the hidden dim into a channel dim
-        self.convs = nn.ModuleList([
-            nn.Conv1d(in_channels=1, out_channels=num_filters, kernel_size=k, padding=k // 2)
-            for k in kernel_sizes
-        ])
-        total_filters = num_filters * len(kernel_sizes)
-        self.classifier = nn.Linear(total_filters, num_labels)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # x: [batch, hidden_size]  →  [batch, 1, hidden_size]
-        x = self.dropout(x).unsqueeze(1)
-        pooled = [
-            self.activation(conv(x)).max(dim=-1).values  # global max-pool
-            for conv in self.convs
-        ]
-        out = torch.cat(pooled, dim=-1)  # [batch, total_filters]
-        return self.classifier(self.dropout(out))
-
-
-class GNNClassifier(nn.Module):
-    """GNN-inspired classification head using virtual-graph message passing.
-
-    Partitions the ``hidden_size``-dim CLS embedding into ``num_nodes``
-    virtual "node" feature vectors and performs multi-round attention-weighted
-    message passing over a fully-connected virtual graph, then flattens and
-    projects to the output space.
-
-    .. note::
-        This architecture does **not** require an external graph structure –
-        the graph topology is inferred from the feature partition itself.
-        ``hidden_size`` must be divisible by ``num_nodes``.
-
-    Args:
-        hidden_size (int): Dimension of the input CLS embedding.
-        num_labels (int): Number of output classes.
-        num_nodes (int): Number of virtual graph nodes to split the embedding
-            into (must evenly divide ``hidden_size``).
-        num_layers (int): Number of message-passing rounds.
-        dropout (float): Dropout probability.
-    """
-
-    def __init__(
-        self,
-        hidden_size: int = 768,
-        num_labels: int = 4,
-        num_nodes: int = 12,
-        num_layers: int = 2,
-        dropout: float = 0.1,
-    ):
-        super().__init__()
-        if hidden_size % num_nodes != 0:
-            raise ValueError(
-                f"GNNClassifier requires hidden_size ({hidden_size}) to be "
-                f"divisible by num_nodes ({num_nodes})."
-            )
-        node_dim = hidden_size // num_nodes
-        self.num_nodes = num_nodes
-        self.node_dim = node_dim
-        self.dropout = nn.Dropout(dropout)
-        self.activation = nn.GELU()
-
-        # Message-passing: transform each node's features
-        self.mp_layers = nn.ModuleList(
-            [nn.Linear(node_dim, node_dim) for _ in range(num_layers)]
-        )
-        # Attention: score each directed edge (hi ∥ hj) → scalar
-        self.attn_layers = nn.ModuleList(
-            [nn.Linear(node_dim * 2, 1) for _ in range(num_layers)]
-        )
-        self.layer_norms = nn.ModuleList(
-            [nn.LayerNorm(node_dim) for _ in range(num_layers)]
-        )
-        self.classifier = nn.Linear(hidden_size, num_labels)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        B = x.shape[0]
-        x = self.dropout(x)
-        # Partition: [batch, hidden_size] → [batch, num_nodes, node_dim]
-        h = x.view(B, self.num_nodes, self.node_dim)
-
-        for mp, attn, norm in zip(self.mp_layers, self.attn_layers, self.layer_norms):
-            # Pairwise attention scores over fully-connected virtual graph
-            hi = h.unsqueeze(2).expand(-1, -1, self.num_nodes, -1)  # [B, N, N, d]
-            hj = h.unsqueeze(1).expand(-1, self.num_nodes, -1, -1)  # [B, N, N, d]
-            e = attn(torch.cat([hi, hj], dim=-1)).squeeze(-1)        # [B, N, N]
-            a = torch.softmax(e, dim=-1)                              # [B, N, N]
-            # Aggregated neighbor messages + residual + layer norm
-            agg = torch.bmm(a, mp(h))                                 # [B, N, d]
-            h = norm(self.activation(h + agg))
-
-        out = self.dropout(h.view(B, -1))                             # [B, hidden_size]
-        return self.classifier(out)
 
 
 class _ConceptNode(nn.Module):
@@ -509,7 +343,16 @@ class GCPClassifier(nn.Module):
                   according to the topological traversal of the DAG.
         """
         node_emb = self._propagate(self.dropout_layer(x))
-        concept_logits = [self.concept_predictors[j](node_emb[j]) for j in self._topo_order]
+        # For sink nodes, node_emb[j] is used in both concept_predictors and sink_cat.
+        # Using the same tensor in two branches can trigger in-place modification
+        # during backward (e.g. in LayerNorm/Dropout), causing autograd version errors.
+        # Clone for one branch to avoid "modified by an inplace operation".
+        concept_logits = [
+            self.concept_predictors[j](
+                node_emb[j].clone() if j in self._sink_nodes else node_emb[j]
+            )
+            for j in self._topo_order
+        ]
         sink_cat = torch.cat([node_emb[s] for s in self._sink_nodes], dim=-1)
         final_logits = self.final_classifier(sink_cat)
         return final_logits, concept_logits
@@ -521,17 +364,13 @@ class GCPClassifier(nn.Module):
 
 #: Registry mapping lowercase type names to classifier classes.
 CLASSIFIER_REGISTRY: Dict[str, Type[nn.Module]] = {
-    "mlp": MLPClassifier,
-    "linear": LinearClassifier,
     "deep_mlp": DeepMLPClassifier,
-    "cnn": CNNClassifier,
-    "gnn": GNNClassifier,
     "gcp": GCPClassifier,
 }
 
 
 def build_classifier(
-    classifier_type: str = "mlp",
+    classifier_type: str = "deep_mlp",
     hidden_size: int = 768,
     num_labels: int = 4,
     **classifier_kwargs,
@@ -540,8 +379,7 @@ def build_classifier(
 
     Args:
         classifier_type (str):
-            Architecture to use.  One of ``"mlp"`` (default), ``"linear"``,
-            ``"deep_mlp"``, ``"cnn"``, ``"gnn"``, or ``"gcp"``.
+            Architecture to use.  One of ``"deep_mlp"`` (default) or ``"gcp"``.
         hidden_size (int):
             Encoder hidden dimension.  Must match the dimension of the CLS
             embedding produced by the shared encoder.
@@ -552,8 +390,6 @@ def build_classifier(
             the selected classifier class.  For example:
 
             * ``"deep_mlp"`` – ``num_layers=4``, ``dropout=0.2``
-            * ``"cnn"``      – ``num_filters=256``, ``kernel_sizes=(3, 5)``
-            * ``"gnn"``      – ``num_nodes=8``, ``num_layers=3``
             * ``"gcp"``      – ``concept_dim=256``, ``use_resnet=False``,
               ``edges=[(0,1),(1,2),(2,3)]`` (required)
 
@@ -565,8 +401,8 @@ def build_classifier(
 
     Example::
 
-        head = build_classifier("cnn", hidden_size=768, num_labels=3,
-                                num_filters=128, kernel_sizes=(3, 7))
+        head = build_classifier("deep_mlp", hidden_size=768, num_labels=3,
+                                num_layers=4, dropout=0.1)
     """
     key = classifier_type.lower()
     if key not in CLASSIFIER_REGISTRY:

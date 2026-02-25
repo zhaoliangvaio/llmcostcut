@@ -9,7 +9,16 @@ This file is part of the LLMCompiler framework.
 Released under the Apache 2.0 License (see LICENSE).
 
 If you use this code in academic work, please cite:
-<Paper citation to appear>
+
+@misc{yu2026distillingllmreasoninggraph,
+      title={Distilling LLM Reasoning into Graph of Concept Predictors}, 
+      author={Ziyang Yu and Liang Zhao},
+      year={2026},
+      eprint={2602.03006},
+      archivePrefix={arXiv},
+      primaryClass={cs.AI},
+      url={https://arxiv.org/abs/2602.03006}, 
+}
 
 Contact:
 Liang Zhao (liang.zhao@emory.edu)
@@ -28,7 +37,7 @@ Supports:
 Buffers are intentionally simple and CPU-friendly.
 """
 import torch, time, random
-from collections import deque
+
 class RingBuffer:
     def __init__(self, capacity=20000):
         self.capacity = capacity

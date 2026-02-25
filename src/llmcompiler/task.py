@@ -43,7 +43,7 @@ class Task:
         tokenizer,
         device,
         hidden_size,
-        classifier_type="mlp",
+        classifier_type="deep_mlp",
         classifier_kwargs=None,
     ):
         self.task_id = task_id

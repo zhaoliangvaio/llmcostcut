@@ -2,8 +2,10 @@
 torch>=1.9.0
 transformers>=4.20.0
 
-# Optional: OpenAI teacher (required by the default llm_fn)
-# openai>=1.0.0
+# Optional: OpenAI teacher (required by examples/agnews_gcp.py and default llm_fn)
+openai>=1.0.0
+python-dotenv>=1.0.0
+pydantic>=2.0.0
 
 # Optional: development dependencies
 # pytest>=7.0.0

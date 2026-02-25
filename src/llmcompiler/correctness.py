@@ -176,26 +176,36 @@ class OnlineCorrectnessPredictor:
 
 
     def train_step(self, batch=64, steps=1):
+        """Train the correctness predictor. Holds _state_lock only while copying
+        the batch, so the main thread can add_training_example without blocking
+        for the full backward pass.
+        """
         if not self._state_lock.acquire(blocking=False):
             return
         try:
             if len(self.buffer_feats) < batch:
                 return
-
+            # Copy batch under lock; training runs without holding the lock
+            # so add_training_example() on the main thread does not block long.
+            batches_feats = []
+            batches_labels = []
             for _ in range(steps):
                 idxs = torch.randint(0, len(self.buffer_feats), (batch,), device="cpu").tolist()
-                feats = torch.stack([self.buffer_feats[i] for i in idxs]).to(self.device)
-                labels = torch.tensor([self.buffer_labels[i] for i in idxs],
-                                      dtype=torch.float32, device=self.device)
-
-                preds = self.model(feats)
-                loss = F.binary_cross_entropy(preds, labels)
-
-                self.optim.zero_grad()
-                loss.backward()
-                self.optim.step()
+                feats = torch.stack([self.buffer_feats[i] for i in idxs])
+                labels = torch.tensor([self.buffer_labels[i] for i in idxs], dtype=torch.float32)
+                batches_feats.append(feats)
+                batches_labels.append(labels)
         finally:
             self._state_lock.release()
+
+        for feats, labels in zip(batches_feats, batches_labels):
+            feats = feats.to(self.device)
+            labels = labels.to(self.device)
+            preds = self.model(feats)
+            loss = F.binary_cross_entropy(preds, labels)
+            self.optim.zero_grad()
+            loss.backward()
+            self.optim.step()
 
     @torch.no_grad()
     def predict_p_correct(self, encoding, student_logits, input_len):

@@ -33,6 +33,7 @@ import json
 import math
 import time
 import threading
+import os
 from pathlib import Path
 from typing import Callable, Optional, Sequence
 import torch
@@ -42,7 +43,6 @@ from torch.utils.data.dataloader import default_collate
 from .registry import TaskRegistry
 from .models import annotate_with_classifier, CLASSIFIER_REGISTRY, GCPClassifier
 from .trainer import train_one_round_buff, submodule_retrain
-from .models import GCPClassifier
 from .defaults import (
     get_device,
     get_encoder,
@@ -50,6 +50,7 @@ from .defaults import (
     get_optimizer,
 )
 from .selector import ActiveLearningSelector
+
 
 # -----------------------------
 # Training policy (tunable)
@@ -64,25 +65,27 @@ CORRECTNESS_BATCH  = 64
 CORRECTNESS_STEPS  = 3
 # Sub-module retraining (§3.4 arXiv:2602.03006) — GCPClassifier only
 SUBMODULE_RETRAIN_EVERY = 40   # trigger sub-module retrain every N samples (≥ TRAIN_CLASSIFIER_EVERY)
-SUBMODULE_RETRAIN_STEPS = 30   # gradient steps per sub-module retrain round
+SUBMODULE_RETRAIN_STEPS = 3   # gradient steps per sub-module retrain round
 SUBMODULE_RETRAIN_TOP_K = 1    # number of concept nodes to select (Theorem 3.3)
 
 def _default_llm_fn(texts, task_id2classes, **kwargs):
     """Default teacher that calls the OpenAI Chat Completions API.
 
     Used automatically when the caller omits ``llm_fn`` in :func:`monitor`.
-    Reads ``OPENAI_API_KEY`` from the environment (standard OpenAI SDK
-    convention).
+    Reads ``OPENAI_API_KEY`` from the environment. If ``python-dotenv`` is
+    installed, loads variables from a ``.env`` file in the current working
+    directory before creating the client.
 
-    The model is prompted to return a JSON object with one key per task and
-    the predicted label as its value.  Labels are validated against
+    The model is prompted to return a structured object (enforced via strict
+    JSON schema) with one key per task (predicted label) and a ``values`` key
+    (list of 0/1 for concept nodes).  Labels are validated against
     ``task_id2classes``; any unrecognised label falls back to the first class.
 
     **GCP concept-label support** – pass ``concept_info`` (via ``llm_kwargs``)
     to also generate per-node concept labels that ``classifier_type="gcp"``
-    consumes.  Each node description is used as a sub-question in the prompt;
-    the model returns extra ``"{task_id}__node_{i}"`` keys alongside the
-    normal task keys (same label vocabulary as the parent task).
+    consumes.  The model returns ``values`` as **[0, 1, 1, 0, ...]** (one 0 or 1
+    per node in a fixed order); these are mapped to ``"{task_id}__node_{i}"``
+    keys (1/0) in the result.
 
     Args:
         texts (list[str]): Batch of input strings to classify.
@@ -115,8 +118,8 @@ def _default_llm_fn(texts, task_id2classes, **kwargs):
 
         * One ``task_id → label`` entry per task in ``task_id2classes``.
         * When ``concept_info`` is supplied, additional
-          ``"{task_id}__node_{i}" → label`` entries for every node
-          description provided (same label vocabulary as the parent task).
+          ``"{task_id}__node_{i}" → 0|1`` entries (false/true) for every node
+          description provided.
 
     Raises:
         ImportError: If the ``openai`` package is not installed.
@@ -128,6 +131,18 @@ def _default_llm_fn(texts, task_id2classes, **kwargs):
             "The default teacher requires the 'openai' package. "
             "Install it with:  pip install openai"
         ) from exc
+
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+    except ImportError as exc:
+        raise ImportError(
+            "Optional 'python-dotenv' failed to load. "
+            "Install with: pip install python-dotenv ; or set OPENAI_API_KEY in the environment."
+        ) from exc
+
+    if "OPENAI_API_KEY" not in os.environ:
+        raise ValueError("OPENAI_API_KEY is not set in the environment.")
 
     model = kwargs.pop("model", "gpt-4o-mini")
     # concept_info: dict[task_id -> list[node_description_str]] | None
@@ -142,38 +157,63 @@ def _default_llm_fn(texts, task_id2classes, **kwargs):
         for task_id, classes in task_id2classes.items()
     )
 
+    # Build ordered list of (task_id, node_idx) for concept_values to fix [0,1,1,0,...] order
+    concept_order: list[tuple[str, int]] = []
     concept_lines = ""
     if concept_info:
         node_entries = []
         for task_id, node_descs in concept_info.items():
             if task_id not in task_id2classes:
                 continue
-            classes = task_id2classes[task_id]
-            label_opts = ", ".join(repr(c) for c in classes)
             for node_idx, desc in enumerate(node_descs):
+                concept_order.append((task_id, node_idx))
                 key = f"{task_id}__node_{node_idx}"
                 node_entries.append(
-                    f'  - "{key}": {desc}  → one of [{label_opts}]'
+                    f'  - "{key}": {desc}  → true or false'
                 )
         if node_entries:
+            n_concepts = len(concept_order)
             concept_lines = (
-                "\nAdditionally, predict the following concept keys "
-                "(same label vocabulary as the parent task):\n"
-                + "\n".join(node_entries)
+                "\nAdditionally, set the 'values' array to exactly "
+                f"{n_concepts} integers (0 or 1), in this order – one per line:\n"
+                + "\n".join(
+                    f"  - index {i}: {concept_order[i][0]} node {concept_order[i][1]} — {concept_info[concept_order[i][0]][concept_order[i][1]]}"
+                    for i in range(n_concepts)
+                )
+                + "\n(0 = false, 1 = true for that concept.)"
             )
+    else:
+        concept_lines = "\nSet 'values' to an empty array []."
+
+    # JSON schema with fixed keys (no dict) so OpenAI strict mode accepts it.
+    # required = every key in properties; additionalProperties = false.
+    schema_properties = {
+        task_id: {"type": "string", "enum": list(classes)}
+        for task_id, classes in task_id2classes.items()
+    }
+    schema_properties["values"] = {
+        "type": "array",
+        "items": {"type": "integer", "enum": [0, 1]},
+        "description": "Concept node outputs in fixed order, each 0 or 1",
+    }
+    json_schema = {
+        "type": "object",
+        "properties": schema_properties,
+        "required": list(schema_properties.keys()),
+        "additionalProperties": False,
+    }
 
     system_prompt = (
         "You are a text classification assistant.\n"
-        "For the given input text, return a JSON object with exactly one key "
-        "per item listed below and the predicted label (exactly as written) "
-        "as the value.\n"
+        "Return a JSON object with one key per task below (the predicted label, "
+        "exactly as written) and a 'values' key (array of 0 or 1 as described).\n"
         f"Tasks and allowed labels:\n{task_lines}"
         f"{concept_lines}\n"
-        "Respond with ONLY a valid JSON object – no markdown, no explanation."
+        "Respond with ONLY valid JSON – no markdown, no explanation."
     )
 
     # ------------------------------------------------------------------ #
-    # Call the API once per text and parse results                         #
+    # Call the API once per text; response format enforced by JSON schema #
     # ------------------------------------------------------------------ #
     results = []
     for text in texts:
@@ -183,35 +223,39 @@ def _default_llm_fn(texts, task_id2classes, **kwargs):
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": text},
             ],
-            response_format={"type": "json_object"},
+            response_format={
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "LLMResponse",
+                    "strict": True,
+                    "schema": json_schema,
+                },
+            },
             **kwargs,
         )
         raw = response.choices[0].message.content or "{}"
+        if getattr(response.choices[0].message, "refusal", None):
+            raise ValueError(
+                f"Teacher LLM refused: {response.choices[0].message.refusal!r}"
+            )
         try:
             parsed = json.loads(raw)
-        except json.JSONDecodeError:
-            parsed = {}
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Teacher LLM returned invalid JSON: {raw!r}") from e
 
         row = {}
-        # Main task labels
+        # Main task labels (one key per task in parsed)
         for task_id, classes in task_id2classes.items():
             label = parsed.get(task_id, classes[0])
             if label not in classes:
                 label = classes[0]
             row[task_id] = label
 
-        # Per-node concept labels (only when concept_info was supplied)
-        if concept_info:
-            for task_id, node_descs in concept_info.items():
-                if task_id not in task_id2classes:
-                    continue
-                classes = task_id2classes[task_id]
-                for node_idx in range(len(node_descs)):
-                    key = f"{task_id}__node_{node_idx}"
-                    label = parsed.get(key, row.get(task_id, classes[0]))
-                    if label not in classes:
-                        label = row.get(task_id, classes[0])
-                    row[key] = label
+        # Per-node concept labels from parsed["values"] [0, 1, 1, 0, ...]
+        values = parsed.get("values", [])
+        for i, (task_id, node_idx) in enumerate(concept_order):
+            key = f"{task_id}__node_{node_idx}"
+            row[key] = values[i] if i < len(values) else 0
 
         results.append(row)
 
@@ -287,9 +331,9 @@ def _collate_buffer(batch: list) -> dict:
 
 
 _registry = TaskRegistry()
+# Classifier training and submodule retraining share one lock per task so they are strictly exclusive.
 _classifier_locks = {}
 _correctness_locks = {}
-_submodule_retrain_locks = {}
 _training_locks_guard = threading.Lock()
 MONITOR_TIMING_LOG = True
 MONITOR_TIMING_STDOUT = False
@@ -310,8 +354,22 @@ def _run_in_background_with_lock(lock_map, task_id, name, fn, *args, **kwargs):
                 fn(*args, **kwargs)
             except Exception as err:
                 print(f"[monitor] background {name} training failed for {task_id}: {err}")
+                raise
 
     threading.Thread(target=_target, daemon=True).start()
+
+
+def wait_for_pending_training():
+    """Block until any in-flight background training (classifier / correctness) has finished.
+
+    Call this before process exit or before reusing the registry so that daemon
+    threads are not still holding CUDA/models when the main thread tears down.
+    """
+    with _training_locks_guard:
+        locks = list(_classifier_locks.values()) + list(_correctness_locks.values())
+    for lock in locks:
+        lock.acquire()
+        lock.release()
 
 def _log_monitor_timing(msg):
     if not MONITOR_TIMING_LOG:
@@ -326,6 +384,7 @@ def _log_monitor_timing(msg):
         except Exception as e:
             print(f"[monitor_timing] failed to write log file: {e}")
             print(line, end="")
+            raise
     if MONITOR_TIMING_STDOUT:
         print(line, end="")
 
@@ -351,7 +410,7 @@ def monitor(
     optimizer=None,
     scheduler=None,
     p_threshold=0.8,
-    classifier_type="mlp",
+    classifier_type="deep_mlp",
     classifier_kwargs=None,
     submodule_retrain_top_k=None,
 ):
@@ -391,44 +450,36 @@ def monitor(
             Architecture of the student classification head.  Must be one of
             the keys registered in ``CLASSIFIER_REGISTRY``:
 
-            * ``"mlp"``      – 2-layer MLP with dropout and GELU *(default)*.
-            * ``"linear"``   – Single linear layer (fastest, no hidden layer).
-            * ``"deep_mlp"`` – Configurable-depth MLP with residual connections.
-            * ``"cnn"``      – Multi-scale 1-D CNN with global max-pooling.
-            * ``"gnn"``      – GNN-inspired head using virtual-graph message passing.
+            * ``"deep_mlp"`` – Configurable-depth MLP with residual connections *(default)*.
             * ``"gcp"``      – Graph of Concept Predictors (DAG-structured head);
               requires ``classifier_kwargs={"edges": [(0,1),(1,2),...]}``.
 
-            Defaults to ``"mlp"``.
+            Defaults to ``"deep_mlp"``.
         classifier_kwargs (dict, optional):
             Architecture-specific keyword arguments forwarded to the selected
             classifier class.  For example::
+
+                # Deeper MLP with less dropout
+                classifier_type="deep_mlp",
+                classifier_kwargs={"num_layers": 4, "dropout": 0.05}
+
+                # GCP with custom DAG
+                classifier_type="gcp",
+                classifier_kwargs={"edges": [(0, 1), (1, 2), (2, 3)], "concept_dim": 256}
+
         submodule_retrain_top_k (int, optional):
             Number of concept nodes to select for targeted sub-module
             retraining (§3.4 of arXiv:2602.03006).  Only applicable when
             ``classifier_type="gcp"``.  When ``None`` (default), falls back
             to the module-level :data:`SUBMODULE_RETRAIN_TOP_K` constant.
 
-                # Deeper MLP with less dropout
-                classifier_type="deep_mlp",
-                classifier_kwargs={"num_layers": 4, "dropout": 0.05}
-
-                # CNN with larger filters
-                classifier_type="cnn",
-                classifier_kwargs={"num_filters": 256, "kernel_sizes": (3, 5, 7, 9)}
-
-                # GNN with 8 virtual nodes and 3 message-passing rounds
-                classifier_type="gnn",
-                classifier_kwargs={"num_nodes": 8, "num_layers": 3}
-
     **GCP concept-label convention** (``classifier_type="gcp"`` only):
 
         ``llm_fn`` may return per-node concept labels alongside the final task
         label by including keys of the form ``f"{task_id}__node_{i}"`` in each
         output dict, where ``i`` is the 0-based node index in topological order.
-        Values must be strings drawn from the same label vocabulary as the
-        final task.  When a key is missing for a node, the final task label is
-        used as a fallback for that node.
+        Values must be **true or false** (or 0/1).  When a key is missing for
+        a node, it is treated as false (0).
 
         Example – teacher for a 4-node AG-News GCP chain::
 
@@ -438,10 +489,10 @@ def monitor(
                     topic = lookup[text]      # e.g. "Sports"
                     results.append({
                         "topic":          topic,
-                        "topic__node_0":  domain_concept(topic),   # e.g. "World"
-                        "topic__node_1":  sector_concept(topic),   # e.g. "Business"
-                        "topic__node_2":  specificity_concept(topic),
-                        # node_3 omitted → falls back to final "topic" label
+                        "topic__node_0":  True,   # e.g. domain concept holds
+                        "topic__node_1":  False,
+                        "topic__node_2":  True,
+                        # node_3 omitted → treated as false (0)
                     })
                 return results
 
@@ -460,6 +511,9 @@ def monitor(
         - ``classifier_type`` and ``classifier_kwargs`` only take effect the
           *first time* a task is seen; subsequent calls reuse the already-created
           ``Task`` object from the registry.
+        - ``device`` can be ``None`` (default: ``cuda:0`` or ``cpu``), a string
+          (e.g. ``"cuda:1"``), an int (e.g. ``1`` for ``cuda:1``), or a
+          :class:`torch.device`.
     """
     if llm_fn is None:
         llm_fn = _default_llm_fn
@@ -475,8 +529,7 @@ def monitor(
         raise ValueError(
             f"'mode' must be one of {sorted(_VALID_MODES)}, got {mode!r}."
         )
-    # Bug-fix 1: capture is_single_input BEFORE offline may convert text to a
-    # list, so the return type stays consistent regardless of mode.
+
     is_single_input = isinstance(text, str)
 
     if mode == "offline":
@@ -513,14 +566,15 @@ def monitor(
         else:
             text = [text[i] for i in selected_indices]
 
-    monitor_t0 = time.perf_counter()
     task_timing = {}
     # Bug-fix 5: offline mode may have converted a single string to a list
     # already; guard against wrapping it a second time into a nested list.
+
+
     if is_single_input and isinstance(text, str):
         texts = [text]
     elif isinstance(text, Sequence):
-        texts = list(text)
+        texts = [t[0] for t in text]
         if any(not isinstance(t, str) for t in texts):
             raise TypeError("When 'text' is a sequence, every item must be a string.")
     else:
@@ -531,22 +585,12 @@ def monitor(
         return [], []
 
     all_results = [{} for _ in range(batch_size)]
-    t0 = time.perf_counter()
-    device = get_device(device)
-    setup_device_ms = (time.perf_counter() - t0) * 1000.0
-
-    t0 = time.perf_counter()
+    device = get_device(device) if device is None else device
     if encoder is None or hidden_size is None:
         encoder, hidden_size = get_encoder(device=device)
-    setup_encoder_ms = (time.perf_counter() - t0) * 1000.0
-
-    t0 = time.perf_counter()
     if tokenizer is None:
         tokenizer = get_tokenizer()
-    setup_tokenizer_ms = (time.perf_counter() - t0) * 1000.0
-    
-    # preds = {_task: None for _task in task_id2classes.keys()}
-    # p_corrects = {_task: None for _task in task_id2classes.keys()}
+
     caches = {
         _task: {
             'task': None,
@@ -636,12 +680,12 @@ def monitor(
     # (encoding / label pairs for counterfactual impact scoring; GCP only).
     _smr_enc: dict = {}   # task_id -> list[Tensor]
     _smr_lbl: dict = {}   # task_id -> list[int]
+    _smr_concept: dict = {}   # task_id -> list[list[int]] (concept labels per sample)
 
     fallback_indices = []
     for i, sample_text in enumerate(texts):
         t0 = time.perf_counter()
         p_correct_map = {_task_id: content['p_corrects'][i] for _task_id, content in caches.items()}
-        # print(f"p_correct_map:{p_correct_map}")
         sample_fallback = _should_fallback(p_correct_map, p_threshold)
         fallback_flags.append(sample_fallback)
         fallback_decision_ms += (time.perf_counter() - t0) * 1000.0
@@ -663,24 +707,9 @@ def monitor(
         teacher_call_ms += (time.perf_counter() - t0) * 1000.0
 
         t0 = time.perf_counter()
-        if isinstance(teacher_out_batch, list):
-            fallback_teacher_outs = teacher_out_batch
-        elif isinstance(teacher_out_batch, dict):
-            # Support two return formats:
-            # 1) When len(fallback_indices) == 1, legacy API returns a single dict[task_id -> label]
-            # 2) New batch API returns dict[task_id -> list[label]]
-            if len(fallback_indices) == 1 and all(not isinstance(v, (list, tuple)) for v in teacher_out_batch.values()):
-                fallback_teacher_outs = [teacher_out_batch]
-            else:
-                fallback_teacher_outs = []
-                for pos in range(len(fallback_indices)):
-                    item = {task_id: teacher_out_batch[task_id][pos] for task_id in task_id2classes.keys()}
-                    fallback_teacher_outs.append(item)
-        else:
-            raise TypeError(
-                "llm_fn batch output must be list[dict] or dict[task_id -> list[label]] "
-                "(or dict[task_id -> label] when fallback batch size is 1)."
-            )
+        if not isinstance(teacher_out_batch, list):
+            raise TypeError("llm_fn must return list[dict] (one dict per input text).")
+        fallback_teacher_outs = teacher_out_batch
 
         if len(fallback_teacher_outs) != len(fallback_indices):
             raise ValueError(
@@ -727,19 +756,19 @@ def monitor(
             t0 = time.perf_counter()
             # Extract per-node concept labels from teacher_out when the teacher
             # returned them under keys "{task_id}__node_{i}" (GCP convention).
-            # Falls back to the final label for any node whose key is absent.
+            # Values are 0/1 (false/true). Missing key → 0 for non-sink; for sink
+            # nodes use the final task label so the sink concept head gets correct supervision.
             concept_labels = None
-            if hasattr(task.classifier, 'num_nodes'):   # GCPClassifier only
+            if isinstance(task.classifier, GCPClassifier):
+                sink_nodes = set(task.classifier._sink_nodes)
                 node_label_ids = []
                 for node_idx in range(task.classifier.num_nodes):
                     node_key = f"{task_id}__node_{node_idx}"
-                    if node_key in teacher_out:
-                        node_str = teacher_out[node_key]
-                        node_label_ids.append(
-                            task.label2id.get(node_str, label_id)
-                        )
-                    else:
+                    if node_key not in teacher_out and node_idx in sink_nodes:
                         node_label_ids.append(label_id)
+                    else:
+                        raw = teacher_out.get(node_key, 0)
+                        node_label_ids.append(1 if raw in (True, 1, "true", "True", "1") else 0)
                 concept_labels = node_label_ids
             task.buffers.add_sample(
                 workflow_id=task.workflow_id(),
@@ -757,32 +786,17 @@ def monitor(
             if isinstance(task.classifier, GCPClassifier):
                 _smr_enc.setdefault(task_id, []).append(embeddings[i].detach().cpu())
                 _smr_lbl.setdefault(task_id, []).append(label_id)
+                _smr_concept.setdefault(task_id, []).append(concept_labels)
 
             # ---- incremental training ----
             t0 = time.perf_counter()
             # Use label-based trigger only; step modulo can miss when batch sizes vary.
             if _should_train(task):
-            # if True:
                 buf = task.buffers.get_buffer(task.workflow_id())
                 if buf.size > 0 and task.task_id not in scheduled_classifier_tasks:
                     steps = _compute_steps(task.num_labeled)
                     clipped_steps = max(5, min(50, steps))
                     train_round = task.num_train_rounds + 1
-                    # schedule_msg = (
-                    #     f"[monitor] schedule classifier training "
-                    #     f"task={task.task_id} round={train_round} step={task.step} "
-                    #     f"num_labeled={task.num_labeled} "
-                    #     f"new_samples_since_last={task.step - task.last_train_step} "
-                    #     f"buffer_size={buf.size} steps_per_round={clipped_steps}"
-                    # )
-                    # print(schedule_msg)
-                    # _log_monitor_timing(
-                    #     "[monitor_train_schedule] "
-                    #     f"task_id={task.task_id} round={train_round} step={task.step} "
-                    #     f"num_labeled={task.num_labeled} "
-                    #     f"new_samples_since_last={task.step - task.last_train_step} "
-                    #     f"buffer_size={buf.size} steps_per_round={clipped_steps}"
-                    # )
                     data = task.buffers.sample_for_training(task.workflow_id(), REPLAY_SAMPLE_SIZE, num_labels=task.num_labels)
                     loader = DataLoader(
                         data,
@@ -814,15 +828,6 @@ def monitor(
             # ---- train correctness predictor ----
             t0 = time.perf_counter()
             if _should_train_correctness(task) and task.task_id not in scheduled_correctness_tasks:
-            # if task.task_id not in scheduled_correctness_tasks:
-                correctness_round = task.num_correctness_train_rounds + 1
-                # _log_monitor_timing(
-                #     "[monitor_correctness_schedule] "
-                #     f"task_id={task.task_id} round={correctness_round} step={task.step} "
-                #     f"num_labeled={task.num_labeled} "
-                #     f"new_samples_since_last={task.step - task.last_correctness_train_step} "
-                #     f"batch={CORRECTNESS_BATCH} steps={CORRECTNESS_STEPS}"
-                # )
                 _run_in_background_with_lock(
                     _correctness_locks,
                     task.task_id,
@@ -849,6 +854,9 @@ def monitor(
                 scoring_batch = {
                     "encoding": torch.stack(_smr_enc[task_id]),   # [N, hidden_size]
                     "label":    torch.tensor(_smr_lbl[task_id], dtype=torch.long),
+                    "concept_labels": torch.tensor(
+                        _smr_concept[task_id], dtype=torch.long
+                    ),   # [N, num_nodes], LLM-annotated 0/1 per node
                 }
                 _smr_top_k = (
                     submodule_retrain_top_k
@@ -868,7 +876,7 @@ def monitor(
                         collate_fn=_collate_buffer,
                     )
                     _run_in_background_with_lock(
-                        _submodule_retrain_locks,
+                        _classifier_locks,
                         task.task_id,
                         "submodule_retrain",
                         submodule_retrain,
@@ -889,28 +897,6 @@ def monitor(
                     task.num_submodule_retrain_rounds += 1
             _acc_task_metric(task_id, "submodule_retrain_schedule_ms", (time.perf_counter() - t0) * 1000.0)
             _acc_task_metric(task_id, "teacher_task_total_ms", (time.perf_counter() - teacher_task_t0) * 1000.0)
-
-    total_ms = (time.perf_counter() - monitor_t0) * 1000.0
-    fallback_count = sum(1 for x in fallback_flags if x)
-    # _log_monitor_timing(
-    #     "[monitor_timing] "
-    #     f"total_ms={total_ms:.3f} "
-    #     f"setup_device_ms={setup_device_ms:.3f} "
-    #     f"setup_encoder_ms={setup_encoder_ms:.3f} "
-    #     f"setup_tokenizer_ms={setup_tokenizer_ms:.3f} "
-    #     f"fallback_decision_ms={fallback_decision_ms:.3f} "
-    #     f"teacher_call_ms={teacher_call_ms:.3f} "
-    #     f"teacher_validate_ms={teacher_validate_ms:.3f} "
-    #     f"non_fallback_copy_ms={non_fallback_copy_ms:.3f} "
-    #     f"fallback_count={fallback_count} "
-    #     f"batch_size={batch_size}"
-    # )
-    # for task_id, metrics in task_timing.items():
-        # _log_monitor_timing(
-        #     "[monitor_timing_task] "
-        #     f"task_id={task_id} "
-        #     + " ".join(f"{k}={v:.3f}" for k, v in metrics.items())
-        # )
 
     if is_single_input:
         return all_results[0], fallback_flags[0]
