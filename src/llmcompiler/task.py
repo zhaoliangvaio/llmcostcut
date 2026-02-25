@@ -2,7 +2,7 @@
 LLMCompiler: Adaptive LLM-to-Small-Model Distillation Framework
 
 Copyright (c) 2024–2025
-Liang Zhao and collaborators
+Liang Zhao and Ziyang Yu
 Emory University
 
 This file is part of the LLMCompiler framework.
@@ -31,7 +31,7 @@ Tasks are managed by TaskRegistry and consumed by monitor().
 """
 import hashlib
 from .buffers import ReplayBufferManager
-from .models import Classifier
+from .models import build_classifier
 from .correctness import OnlineCorrectnessPredictor
 
 class Task:
@@ -42,7 +42,9 @@ class Task:
         encoder,
         tokenizer,
         device,
-        hidden_size
+        hidden_size,
+        classifier_type="deep_mlp",
+        classifier_kwargs=None,
     ):
         self.task_id = task_id
         self.classes = classes
@@ -56,11 +58,16 @@ class Task:
         self.last_correctness_train_step = 0
         self.last_correctness_train_labeled = 0
         self.num_correctness_train_rounds = 0
+        # Sub-module retraining state (GCP only; §3.4 arXiv:2602.03006)
+        self.last_submodule_retrain_step = 0
+        self.num_submodule_retrain_rounds = 0
         self.optimizer = None
         # === student classifier ===
-        self.classifier = Classifier(
+        self.classifier = build_classifier(
+            classifier_type=classifier_type,
             hidden_size=hidden_size,
-            num_labels=self.num_labels
+            num_labels=self.num_labels,
+            **(classifier_kwargs or {}),
         ).to(device)
 
         # === correctness predictor ===

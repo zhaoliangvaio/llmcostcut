@@ -2,7 +2,7 @@
 LLMCompiler: Adaptive LLM-to-Small-Model Distillation Framework
 
 Copyright (c) 2024–2025
-Liang Zhao and collaborators
+Liang Zhao and Ziyang Yu
 Emory University
 
 This file is part of the LLMCompiler framework.
@@ -21,7 +21,14 @@ from torch.optim import AdamW
 _DEFAULTS = {}
 
 def get_device(device=None):
-    return device or torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    """Resolve to a :class:`torch.device`. Accepts None, int (CUDA index), str, or torch.device."""
+    if device is None:
+        return torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    if isinstance(device, torch.device):
+        return device
+    if isinstance(device, int):
+        return torch.device(f"cuda:{device}" if torch.cuda.is_available() else "cpu")
+    return torch.device(device)
 
 def get_encoder(model_name="distilbert-base-uncased", device=None):
     key = ("encoder", model_name)

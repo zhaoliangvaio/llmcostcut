@@ -1,19 +1,16 @@
 """
-LLMCompiler 安装脚本
+LLMCompiler installation script.
 
-推荐安装方式（从父目录）:
-    cd /scratch1/zyu273/research-pilot
-    pip install -e ./llmcompiler
+Install in development mode (recommended):
+    pip install -e .
 
-或者从当前目录安装:
-    cd llmcompiler
+From repository root:
+    cd /path/to/llmcompiler
     pip install -e .
 """
-
-from setuptools import setup
+from setuptools import setup, find_packages
 from pathlib import Path
 
-# 读取 README
 readme_file = Path(__file__).parent / "README.md"
 long_description = readme_file.read_text(encoding="utf-8") if readme_file.exists() else ""
 
@@ -27,9 +24,8 @@ setup(
     author_email="liang.zhao@emory.edu",
     url="https://github.com/emory-llmcompiler/llmcompiler",
     license="Apache 2.0",
-    # 包名是 llmcompiler，包内容在当前目录
-    packages=["llmcompiler"],
-    package_dir={"llmcompiler": "."},
+    package_dir={"": "src"},
+    packages=find_packages(where="src"),
     python_requires=">=3.8",
     install_requires=[
         "torch>=1.9.0",

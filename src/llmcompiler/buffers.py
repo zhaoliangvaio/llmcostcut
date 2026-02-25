@@ -2,14 +2,23 @@
 LLMCompiler: Adaptive LLM-to-Small-Model Distillation Framework
 
 Copyright (c) 2024–2025
-Liang Zhao and collaborators
+Liang Zhao and Ziyang Yu
 Emory University
 
 This file is part of the LLMCompiler framework.
 Released under the Apache 2.0 License (see LICENSE).
 
 If you use this code in academic work, please cite:
-<Paper citation to appear>
+
+@misc{yu2026distillingllmreasoninggraph,
+      title={Distilling LLM Reasoning into Graph of Concept Predictors}, 
+      author={Ziyang Yu and Liang Zhao},
+      year={2026},
+      eprint={2602.03006},
+      archivePrefix={arXiv},
+      primaryClass={cs.AI},
+      url={https://arxiv.org/abs/2602.03006}, 
+}
 
 Contact:
 Liang Zhao (liang.zhao@emory.edu)
@@ -28,7 +37,7 @@ Supports:
 Buffers are intentionally simple and CPU-friendly.
 """
 import torch, time, random
-from collections import deque
+
 class RingBuffer:
     def __init__(self, capacity=20000):
         self.capacity = capacity
@@ -41,16 +50,26 @@ class RingBuffer:
                 "text": None,
                 "encoding": None,
                 "label": None,
+                # concept_labels: 1-D int64 tensor of length num_nodes (one label
+                # per GCP DAG node in topological order).  None when the classifier
+                # is not a GCPClassifier or no concept_label_fn is registered.
+                "concept_labels": None,
                 "student_pred": None,
                 "confidence": None,
                 "timestamp": None,
             }
             for _ in range(capacity)
         ]
+
     def add(self, **kwargs):
         i = self.ptr
 
         for k, v in kwargs.items():
+            if v is None:
+                # Leave the slot's existing value intact; do not overwrite with None
+                # (avoids mixing stale tensors with fresh None in the same ring slot).
+                self.data[i][k] = None
+                continue
             if k == "text":
                 # text must stay Python str
                 self.data[i][k] = v
@@ -59,6 +78,8 @@ class RingBuffer:
                 tensor_v = torch.as_tensor(v)
                 if tensor_v.is_floating_point():
                     tensor_v = tensor_v.float()
+                else:
+                    tensor_v = tensor_v.long()
                 self.data[i][k] = tensor_v.detach().cpu()
 
         self.data[i]["timestamp"] = torch.tensor(time.time(), dtype=torch.float32, device="cpu")
@@ -69,13 +90,6 @@ class RingBuffer:
             self.full = True
         self.size = min(self.size + 1, self.capacity)
 
-
-    # def sample(self, batch=64):
-    #     maxidx = self.capacity if self.full else self.ptr
-    #     idxs = np.random.randint(0, maxidx, batch)
-    
-    #     # return a list of dicts
-    #     return [self.data[i] for i in idxs]
 
     def sample(self, batch=64, num_labels=4):
         """Balanced sampling across classes."""
@@ -131,17 +145,34 @@ class ReplayBufferManager:
             self.buffers[workflow_id] = RingBuffer(self.capacity)
         return self.buffers[workflow_id]
 
-    def add_sample(self, workflow_id, text, encoding, label, student_pred=None, confidence=None):
+    def add_sample(self, workflow_id, text, encoding, label,
+                   concept_labels=None, student_pred=None, confidence=None):
+        """Add one sample to the replay buffer.
+
+        Args:
+            workflow_id:    Hash key identifying the task buffer.
+            text:           Raw input string.
+            encoding:       CLS embedding tensor ``[hidden_size]``.
+            label:          Integer class id (final task label).
+            concept_labels: Optional 1-D integer tensor of length ``num_nodes``
+                            containing per-node concept labels in topological
+                            order.  ``None`` when the classifier is not a
+                            GCPClassifier or no ``concept_label_fn`` is
+                            registered on the Task.
+            student_pred:   Student's predicted class id before this call.
+            confidence:     Correctness-predictor confidence score.
+        """
         buf = self.get_buffer(workflow_id)
         buf.add(
             text=text,
             encoding=encoding,
             label=label,
+            concept_labels=concept_labels,
             student_pred=student_pred,
-            confidence=confidence
+            confidence=confidence,
         )
 
-    def sample_for_training(self, workflow_id, batch_size=64):
-        if(batch_size>self.buffers[workflow_id].size):
+    def sample_for_training(self, workflow_id, batch_size=64, num_labels=4):
+        if batch_size > self.buffers[workflow_id].size:
             batch_size = self.buffers[workflow_id].size
-        return self.buffers[workflow_id].sample(batch_size)
+        return self.buffers[workflow_id].sample(batch_size, num_labels=num_labels)
