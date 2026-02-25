@@ -75,7 +75,6 @@ llmcompiler/
 │       task.py           # Task abstraction
 │       trainer.py        # Training and GCP submodule retraining
 ├── examples/
-│   usage.py              # General usage walkthrough
 │   agnews_gcp.py         # AG-News with GCP classifier (concept DAG + online/offline)
 ├── test_installation.py  # Quick install check
 ├── setup.py
@@ -92,7 +91,7 @@ Install in development mode with `pip install -e .`. If present, run tests with 
 
 See the **[examples/](examples/)** directory for runnable usage:
 
-- **[examples/usage.py](examples/usage.py)** — general walkthrough (basic usage, classifier types, batch processing, GCP).
+
 - **[examples/agnews_gcp.py](examples/agnews_gcp.py)** — AG-News with GCP classifier and concept-level labels (online/offline).
 
 
@@ -188,8 +187,6 @@ When using `mode="online"`, training runs in a background thread. Before exit or
 from llmcompiler.monitor import wait_for_pending_training
 wait_for_pending_training()
 ```
-
-See `examples/agnews_gcp.py` for usage.
 
 
 ## How it works
