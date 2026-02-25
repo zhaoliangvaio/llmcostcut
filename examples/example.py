@@ -31,8 +31,8 @@ What this script does
   4. run_offline()      – offline budget labelling
 
 Run:
-  python examples/agnews_gcp.py
-  python examples/agnews_gcp.py --n_samples 2000
+  python examples/example.py
+  python examples/example.py --n_samples 2000
 """
 
 import argparse

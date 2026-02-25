@@ -38,7 +38,7 @@ pip install -e .
 - PyTorch >= 1.9.0
 - Transformers >= 4.20.0
 
-Optional (for the built-in OpenAI teacher and examples such as `agnews_gcp.py`):
+Optional (for the built-in OpenAI teacher and examples such as `example.py`):
 
 - `openai>=1.0.0`
 - `python-dotenv>=1.0.0`
@@ -77,7 +77,7 @@ llmcompiler/
 │       task.py           # Task abstraction
 │       trainer.py        # Training and GCP submodule retraining
 ├── examples/
-│   agnews_gcp.py         # AG-News with GCP classifier (concept DAG + online/offline)
+│   example.py            # AG-News with GCP classifier (concept DAG + online/offline)
 ├── test_installation.py  # Quick install check
 ├── setup.py
 ├── pyproject.toml
@@ -94,7 +94,7 @@ Install in development mode with `pip install -e .`. If present, run tests with 
 See the **[examples/](examples/)** directory for runnable usage:
 
 
-- **[examples/agnews_gcp.py](examples/agnews_gcp.py)** — AG-News with GCP classifier and concept-level labels (online/offline).
+- **[examples/example.py](examples/example.py)** — AG-News with GCP classifier and concept-level labels (online/offline).
 
 
 ## API reference
