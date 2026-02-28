@@ -206,7 +206,7 @@ def run_online(data: list, p_threshold: float = 0.8, n_samples: int = None):
         pred_result, fb = monitor(
             TOPIC_TASK, text,
             mode="online",
-            device=1,
+            device="cuda:0" if torch.cuda.is_available() else "cpu",
             classifier_type="deep_mlp",
         )
         pred = pred_result.get("topic")
@@ -270,7 +270,7 @@ def run_offline(data: list, p_threshold: float = 0.8):
         pred_result, fb = monitor(
             TOPIC_TASK, data, llm_fn=None,
             mode="offline",
-            device=1,
+            device="cuda:0" if torch.cuda.is_available() else "cpu",
             classifier_type="gcp",
             classifier_kwargs=classifier_kwargs,
             llm_kwargs=llm_kwargs,
