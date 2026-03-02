@@ -11,3 +11,5 @@ QUICKSTART.md
 README_PACKAGE.md
 tests/
 src/outputs/
+_README.md
+plot_cost_curve.py

@@ -40,6 +40,7 @@ LLMCompiler is a framework for **selectively invoking LLMs** and **distilling re
 - 📊 [Experimental Results](#experimental-results)
   - 📉 [Fallback Mechanism](#fallback-mechanism)
   - 📈 [Accuracy](#accuracy)
+  - 💰 [Cost Reduction](#cost-reduction)
 - 📁 [Project Structure](#project-structure)
 - 📚 [API Reference](#api-reference)
   - 🔧 [monitor()](#monitor---main-parameters)
@@ -59,7 +60,7 @@ cd llmcompiler
 pip install -e .
 ```
 
-**Install from PyPI** (when available)
+**Install from PyPI**
 
 ```bash
 pip install llmcompiler
@@ -125,6 +126,12 @@ See **[examples/example.py](examples/example.py)** for a full AG-News demo with 
 
 ## 📊 Experimental Results
 
+### 💰 Cost Reduction
+
+![Cost Curve](cost_curve.png)
+
+The inference cost decreases over time as the student model handles more queries and the fallback to the teacher LLM becomes less frequent.
+
 ### 📉 Fallback Mechanism
 
 ![Fallback](fallback.png)
@@ -136,6 +143,8 @@ The fallback ratio (teacher/LLM utilization) decreases over iterations as the st
 ![Accuracy](acc.png)
 
 System accuracy stays close to the teacher baseline (100%) during training. Despite the drop in LLM fallback, accuracy stabilizes around 95% after the initial phase, showing that the distilled student preserves quality while cutting inference cost.
+
+
 
 ---
 
