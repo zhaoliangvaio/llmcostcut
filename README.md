@@ -20,6 +20,7 @@
 
 LLMCompiler is a framework for **selectively invoking LLMs** and **distilling repeated workloads** into smaller student models. Use a teacher LLM only when needed — as the student learns, LLM calls drop toward zero while preserving accuracy.
 
+> 💰 **Save on API costs.** Reduce LLM calls toward zero over time. With the student handling most queries and the teacher only used when uncertain, you cut inference bills significantly while maintaining ~95% accuracy.
 
 ## Key Features
 
