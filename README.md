@@ -22,7 +22,7 @@ LLMCompiler is a framework for **selectively invoking LLMs** and **distilling re
 
 > 💰 **Save on API costs.** Reduce LLM calls toward zero over time. With the student handling most queries and the teacher only used when uncertain, you cut inference bills significantly while maintaining ~95% accuracy.
 
-## Key Features
+## 🎯 Key Features
 
 | 🎯 **Correctness-Aware Fallback** | 📚 **Online Distillation** | 🔄 **Replay-Buffer Training** |
 |----------------------------------|---------------------------|-------------------------------|
@@ -30,7 +30,26 @@ LLMCompiler is a framework for **selectively invoking LLMs** and **distilling re
 
 ---
 
-## Installation
+## Table of Contents
+
+- 🎯 [Key Features](#key-features)
+- 📦 [Installation](#installation)
+  - 📋 [Requirements](#requirements)
+- 🚀 [Quick Start](#quick-start)
+- ⚙️ [How It Works](#how-it-works)
+- 📊 [Experimental Results](#experimental-results)
+  - 📉 [Fallback Mechanism](#fallback-mechanism)
+  - 📈 [Accuracy](#accuracy)
+- 📁 [Project Structure](#project-structure)
+- 📚 [API Reference](#api-reference)
+  - 🔧 [monitor()](#monitor---main-parameters)
+  - ⏳ [wait_for_pending_training()](#wait_for_pending_training)
+- 📖 [Citation](#citation)
+- 🙏 [Acknowledgements](#acknowledgements)
+
+---
+
+## 📦 Installation
 
 **Install from source** (recommended for development)
 
@@ -46,7 +65,7 @@ pip install -e .
 pip install llmcompiler
 ```
 
-### Requirements
+### 📋 Requirements
 
 - Python >= 3.8
 - PyTorch >= 1.9.0
@@ -68,7 +87,7 @@ Or put `OPENAI_API_KEY=your-key-here` in a `.env` file in the project root (load
 
 
 
-## Quick Start
+## 🚀 Quick Start
 
 ```python
 from llmcompiler.monitor import monitor, wait_for_pending_training
@@ -95,7 +114,7 @@ See **[examples/example.py](examples/example.py)** for a full AG-News demo with 
 
 ---
 
-## How It Works
+## ⚙️ How It Works
 
 1. **Student prediction** — Classify input with the small model.
 2. **Confidence** — Estimate reliability of the prediction.
@@ -104,15 +123,15 @@ See **[examples/example.py](examples/example.py)** for a full AG-News demo with 
 
 ---
 
-## Experimental Results
+## 📊 Experimental Results
 
-### Fallback Mechanism
+### 📉 Fallback Mechanism
 
 ![Fallback](fallback.png)
 
 The fallback ratio (teacher/LLM utilization) decreases over iterations as the student becomes more capable. Early on, the system relies on the teacher for correctness; as online distillation progresses, the student handles more queries, reducing LLM calls toward zero by around iteration 100.
 
-### Accuracy
+### 📈 Accuracy
 
 ![Accuracy](acc.png)
 
@@ -120,7 +139,7 @@ System accuracy stays close to the teacher baseline (100%) during training. Desp
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 llmcompiler/
@@ -148,9 +167,9 @@ llmcompiler/
 
 ---
 
-## API Reference
+## 📚 API Reference
 
-### `monitor(...)` — main parameters
+### 🔧 `monitor(...)` — main parameters
 
 #### Required
 
@@ -191,7 +210,7 @@ A 2-tuple `(results, fallback)`:
 | Single `str` | `dict[str, str]` | `bool` |
 | list/tuple str | `list[dict[str, str]]` | `list[bool]` |
 
-### `wait_for_pending_training()`
+### ⏳ `wait_for_pending_training()`
 
 When using `mode="online"`, training runs in a background thread. Before exit or before evaluating the student, call:
 
@@ -202,7 +221,7 @@ wait_for_pending_training()
 
 ---
 
-## Citation
+## 📖 Citation
 
 If you use this framework in your research, please cite:
 
@@ -219,6 +238,6 @@ If you use this framework in your research, please cite:
 
 ---
 
-## Acknowledgements
+## 🙏 Acknowledgements
 
 This framework was developed by the team led by Prof. Liang Zhao at Emory University. We thank collaborators and students for feedback. The design draws on work in online learning, knowledge distillation, and adaptive inference.

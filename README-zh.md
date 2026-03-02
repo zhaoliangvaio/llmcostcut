@@ -22,7 +22,7 @@ LLMCompiler 是一个用于**选择性调用 LLM** 并将**重复工作负载蒸
 
 > 💰 **节省 API 成本。** 让 LLM 调用逐步趋近于零。学生模型处理大部分请求，仅在不确定时调用教师，在保持约 95% 准确率的同时显著降低推理费用。
 
-## 核心特性
+## 🎯 核心特性
 
 | 🎯 **正确性感知回退** | 📚 **在线蒸馏** | 🔄 **回放缓冲训练** |
 |----------------------|----------------|---------------------|
@@ -30,7 +30,27 @@ LLMCompiler 是一个用于**选择性调用 LLM** 并将**重复工作负载蒸
 
 ---
 
-## 安装
+## 目录
+
+- 🎯 [核心特性](#核心特性)
+- 📦 [安装](#安装)
+  - 📋 [依赖要求](#依赖要求)
+  - ✅ [验证安装](#验证安装)
+- 🚀 [快速开始](#快速开始)
+- ⚙️ [工作原理](#工作原理)
+- 📊 [实验结果](#实验结果)
+  - 📉 [回退机制](#回退机制)
+  - 📈 [准确率](#准确率)
+- 📁 [项目结构](#项目结构)
+- 📚 [API 参考](#api-参考)
+  - 🔧 [monitor()](#monitor---主要参数)
+  - ⏳ [wait_for_pending_training()](#wait_for_pending_training)
+- 📖 [引用](#引用)
+- 🙏 [致谢](#致谢)
+
+---
+
+## 📦 安装
 
 **从源码安装**（推荐用于开发）
 
@@ -46,7 +66,7 @@ pip install -e .
 pip install llmcompiler
 ```
 
-### 依赖要求
+### 📋 依赖要求
 
 - Python >= 3.8
 - PyTorch >= 1.9.0
@@ -66,7 +86,7 @@ export OPENAI_API_KEY="your-key-here"
 
 或在项目根目录的 `.env` 文件中添加 `OPENAI_API_KEY=your-key-here`（若已安装 `python-dotenv` 会自动加载）。
 
-### 验证安装
+### ✅ 验证安装
 
 ```python
 from llmcompiler import monitor
@@ -81,7 +101,7 @@ python test_installation.py
 
 ---
 
-## 快速开始
+## 🚀 快速开始
 
 ```python
 from llmcompiler.monitor import monitor, wait_for_pending_training
@@ -108,7 +128,7 @@ wait_for_pending_training()
 
 ---
 
-## 工作原理
+## ⚙️ 工作原理
 
 1. **学生预测** — 使用小模型对输入进行分类。
 2. **置信度** — 估计预测的可靠性。
@@ -117,15 +137,15 @@ wait_for_pending_training()
 
 ---
 
-## 实验结果
+## 📊 实验结果
 
-### 回退机制
+### 📉 回退机制
 
 ![Fallback](fallback.png)
 
 随着学生模型能力提升，回退比例（教师/LLM 使用率）随迭代逐渐下降。初期系统依赖教师保证正确性；随着在线蒸馏推进，学生模型处理更多查询，约在第 100 次迭代时 LLM 调用趋近于零。
 
-### 准确率
+### 📈 准确率
 
 ![Accuracy](acc.png)
 
@@ -133,7 +153,7 @@ wait_for_pending_training()
 
 ---
 
-## 项目结构
+## 📁 项目结构
 
 ```
 llmcompiler/
@@ -161,9 +181,9 @@ llmcompiler/
 
 ---
 
-## API 参考
+## 📚 API 参考
 
-### `monitor(...)` — 主要参数
+### 🔧 `monitor(...)` — 主要参数
 
 #### 必需参数
 
@@ -204,7 +224,7 @@ llmcompiler/
 | 单个 `str` | `dict[str, str]` | `bool` |
 | list/tuple str | `list[dict[str, str]]` | `list[bool]` |
 
-### `wait_for_pending_training()`
+### ⏳ `wait_for_pending_training()`
 
 使用 `mode="online"` 时，训练在后台线程中运行。退出或评估学生模型前请调用：
 
@@ -215,7 +235,7 @@ wait_for_pending_training()
 
 ---
 
-## 引用
+## 📖 引用
 
 若在研究中使用本框架，请引用：
 
@@ -232,6 +252,6 @@ wait_for_pending_training()
 
 ---
 
-## 致谢
+## 🙏 致谢
 
 本框架由 Emory University 赵亮教授团队开发。感谢合作者与学生的反馈。设计借鉴了在线学习、知识蒸馏及自适应推理方面的相关工作。
