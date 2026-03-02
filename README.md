@@ -6,11 +6,20 @@
 
 **Optimized. Efficient. Powerful.**
 
+[![GitHub](https://img.shields.io/badge/GitHub-Project-181717?logo=github)](https://github.com/zhaoliangvaio/llmcompiler)
+[![arXiv](https://img.shields.io/badge/arXiv-2602.03006-red?logo=arxiv)](https://arxiv.org/abs/2602.03006)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.8+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![PyPI](https://img.shields.io/pypi/v/llmcompiler?color=blue)](https://pypi.org/project/llmcompiler/)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/llmcompiler?color=green)](https://pypi.org/project/llmcompiler/)
+
+[![中文](https://img.shields.io/badge/中文-README--zh.md-green)](README-zh.md)
+[![English](https://img.shields.io/badge/English-README.md-blue)](README.md)
+
 ---
 
 LLMCompiler is a framework for **selectively invoking LLMs** and **distilling repeated workloads** into smaller student models. Use a teacher LLM only when needed — as the student learns, LLM calls drop toward zero while preserving accuracy.
 
-Associated research: [Distilling LLM Reasoning into Graph of Concept Predictors](https://arxiv.org/abs/2602.03006).
 
 ## Key Features
 
@@ -56,20 +65,7 @@ export OPENAI_API_KEY="your-key-here"
 
 Or put `OPENAI_API_KEY=your-key-here` in a `.env` file in the project root (loaded automatically if `python-dotenv` is installed).
 
-### Verify installation
 
-```python
-from llmcompiler import monitor
-print("LLMCompiler installed successfully!")
-```
-
-Or run the installation check script:
-
-```bash
-python test_installation.py
-```
-
----
 
 ## Quick Start
 
@@ -111,9 +107,13 @@ See **[examples/example.py](examples/example.py)** for a full AG-News demo with 
 
 ### Fallback Mechanism
 
+![Fallback](fallback.png)
+
 The fallback ratio (teacher/LLM utilization) decreases over iterations as the student becomes more capable. Early on, the system relies on the teacher for correctness; as online distillation progresses, the student handles more queries, reducing LLM calls toward zero by around iteration 100.
 
 ### Accuracy
+
+![Accuracy](acc.png)
 
 System accuracy stays close to the teacher baseline (100%) during training. Despite the drop in LLM fallback, accuracy stabilizes around 95% after the initial phase, showing that the distilled student preserves quality while cutting inference cost.
 
