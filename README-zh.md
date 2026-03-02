@@ -86,17 +86,17 @@ python test_installation.py
 from llmcompiler.monitor import monitor, wait_for_pending_training
 
 # 定义任务和类别
-task_id2classes = {"topic": ["World", "Sports", "Business", "Sci/Tech"]}
+task_id2classes = {"topic": ["Positive", "Negative"]}
 
 # 单条文本
 results, fallback = monitor(
     task_id2classes,
-    "Your input text here",
+    "I love this product!", # Your input text here
     mode="online",  # 或 "offline"
     p_threshold=0.8,
 )
 
-print(results)   # {"topic": "World"}
+print(results)   # {"topic": "Positive"}
 print(fallback)  # True 表示使用了 LLM，False 表示学生模型预测
 
 # 使用 online 模式时，退出前等待后台训练完成

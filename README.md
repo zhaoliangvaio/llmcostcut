@@ -73,17 +73,17 @@ Or put `OPENAI_API_KEY=your-key-here` in a `.env` file in the project root (load
 from llmcompiler.monitor import monitor, wait_for_pending_training
 
 # Define your task and classes
-task_id2classes = {"topic": ["World", "Sports", "Business", "Sci/Tech"]}
+task_id2classes = {"topic": ["Positive", "Negative"]}
 
 # Single text
 results, fallback = monitor(
     task_id2classes,
-    "Your input text here",
+    "I love this product!", # Your input text here
     mode="online",  # or "offline"
     p_threshold=0.8,
 )
 
-print(results)   # {"topic": "World"}
+print(results)   # {"topic": "Positive"}
 print(fallback) # True if LLM was used, False if student predicted
 
 # When using online mode, wait for background training before exit
