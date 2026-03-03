@@ -45,6 +45,7 @@ LLMCompiler 是一个用于**按需调用 LLM** 并将**重复工作负载蒸馏
 - 📚 [API 参考](#api-参考)
   - 🔧 [monitor()](#monitor---主要参数)
   - ⏳ [wait_for_pending_training()](#wait_for_pending_training)
+- 📐 [概念图](#概念图)
 - 📖 [引用](#引用)
 - 🙏 [致谢](#致谢)
 
@@ -227,6 +228,12 @@ llmcompiler/
 from llmcompiler.monitor import wait_for_pending_training
 wait_for_pending_training()
 ```
+
+---
+
+## 📐 概念图
+
+**概念图（Graph of Concepts，GCP）** 是我们论文中提出的推理感知蒸馏架构。它将教师 LLM 的推理过程建模为概念节点的**有向无环图（DAG）**。每个节点维护一个概念嵌入和节点特定的预测器；信息通过可学习的转移函数从父节点传播到子节点，汇节点产生最终任务预测。通过将学生模型建模为概念图，GCP 在实现高效蒸馏的同时保留可解释的中间推理，并支持对选定概念节点的可选子模块重训。
 
 ---
 

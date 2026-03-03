@@ -45,6 +45,7 @@ LLMCompiler is a framework for **selectively invoking LLMs** and **distilling re
 - 📚 [API Reference](#api-reference)
   - 🔧 [monitor()](#monitor---main-parameters)
   - ⏳ [wait_for_pending_training()](#wait_for_pending_training)
+- 📐 [Graph of Concepts](#graph-of-concepts)
 - 📖 [Citation](#citation)
 - 🙏 [Acknowledgements](#acknowledgements)
 
@@ -144,8 +145,6 @@ The fallback ratio (teacher/LLM utilization) decreases over iterations as the st
 
 System accuracy stays close to the teacher baseline (100%) during training. Despite the drop in LLM fallback, accuracy stabilizes around 95% after the initial phase, showing that the distilled student preserves quality while cutting inference cost.
 
-
-
 ---
 
 ## 📁 Project Structure
@@ -227,6 +226,12 @@ When using `mode="online"`, training runs in a background thread. Before exit or
 from llmcompiler.monitor import wait_for_pending_training
 wait_for_pending_training()
 ```
+
+---
+
+## 📐 Graph of Concepts
+
+The **Graph of Concepts (GCP)** is a reasoning-aware distillation architecture introduced in our paper. It mirrors the teacher LLM's reasoning process as a **Directed Acyclic Graph (DAG)** of concept nodes. Each node maintains a concept embedding and a node-specific predictor; information propagates from parent nodes to children through learnable transitions, and sink nodes produce the final task prediction. By structuring the student as a concept graph, GCP preserves interpretable intermediate reasoning while enabling efficient distillation and optional sub-module retraining for selected concept nodes.
 
 ---
 
