@@ -171,7 +171,6 @@ llmcostcut/
 │       trainer.py       # 训练与 GCP 子模块重训练
 ├── examples/
 │   example.py           # AG-News 与 GCP 分类器（概念 DAG + 在线/离线）
-├── test_installation.py # 快速安装检查
 ├── setup.py
 ├── pyproject.toml
 ├── requirements.txt

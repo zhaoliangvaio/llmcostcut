@@ -171,7 +171,6 @@ llmcostcut/
 │       trainer.py       # Training and GCP submodule retraining
 ├── examples/
 │   example.py           # AG-News with GCP classifier (concept DAG + online/offline)
-├── test_installation.py # Quick install check
 ├── setup.py
 ├── pyproject.toml
 ├── requirements.txt
