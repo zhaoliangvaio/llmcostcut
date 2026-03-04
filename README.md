@@ -2,7 +2,7 @@
   <img src="assets/llmcostcut_logo.png" alt="LLMCostCut Logo" width="600"/>
 </p>
 
-# LLMCostCut: The Intelligent Compiler for Large Language Models
+# LLMCostCut: The Intelligent Cost Cutter for Large Language Models
 
 **Optimized. Efficient. Powerful.**
 
