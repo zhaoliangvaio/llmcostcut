@@ -50,7 +50,6 @@
 - 📁 [项目结构](#项目结构)
 - 📚 [API 参考](#api-参考)
   - 🔧 [monitor()](#monitor---主要参数)
-  - ⏳ [monitor.close() / monitor.start()](#monitorclose--monitorstart)
 - 📐 [概念图](#概念图)
 - 📖 [引用](#引用)
 - 🙏 [致谢](#致谢)

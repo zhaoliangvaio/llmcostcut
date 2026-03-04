@@ -50,7 +50,6 @@ As LLM becomes more and more popular, the cost of using LLM is becoming a major 
 - 📁 [Project Structure](#project-structure)
 - 📚 [API Reference](#api-reference)
   - 🔧 [monitor()](#monitor---main-parameters)
-  - ⏳ [monitor.close() / monitor.start()](#monitorclose--monitorstart)
 - 📐 [Graph of Concepts](#graph-of-concepts)
 - 📖 [Citation](#citation)
 - 🙏 [Acknowledgements](#acknowledgements)
