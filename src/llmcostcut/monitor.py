@@ -359,17 +359,23 @@ def _run_in_background_with_lock(lock_map, task_id, name, fn, *args, **kwargs):
     threading.Thread(target=_target, daemon=True).start()
 
 
-def wait_for_pending_training():
-    """Block until any in-flight background training (classifier / correctness) has finished.
-
-    Call this before process exit or before reusing the registry so that daemon
-    threads are not still holding CUDA/models when the main thread tears down.
-    """
+def _wait_for_pending_training():
+    """Block until any in-flight background training (classifier / correctness) has finished."""
     with _training_locks_guard:
         locks = list(_classifier_locks.values()) + list(_correctness_locks.values())
     for lock in locks:
         lock.acquire()
         lock.release()
+
+
+class _MonitorContext:
+    """Context manager that calls monitor.close() on exit."""
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        _wait_for_pending_training()
 
 def _log_monitor_timing(msg):
     if not MONITOR_TIMING_LOG:
@@ -901,3 +907,11 @@ def monitor(
     if is_single_input:
         return all_results[0], fallback_flags[0]
     return all_results, fallback_flags
+
+
+# Attach close() and start() to monitor for lifecycle management
+monitor.close = lambda: _wait_for_pending_training()
+monitor.start = lambda: _MonitorContext()
+
+# Backward compatibility
+wait_for_pending_training = monitor.close

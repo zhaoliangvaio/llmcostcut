@@ -46,7 +46,7 @@ from pathlib import Path
 
 import torch
 
-from llmcostcut.monitor import monitor, _registry, wait_for_pending_training
+from llmcostcut.monitor import monitor, _registry
 from llmcostcut.defaults import get_device, get_encoder, get_tokenizer
 
 torch.autograd.set_detect_anomaly(True)
@@ -206,7 +206,7 @@ def run_online(data: list, p_threshold: float = 0.8, n_samples: int = None):
         pred_result, fb = monitor(
             TOPIC_TASK, text,
             mode="online",
-            device="cuda:0" if torch.cuda.is_available() else "cpu",
+            device="cuda:1" if torch.cuda.is_available() else "cpu",
             classifier_type="deep_mlp",
         )
         pred = pred_result.get("topic")
@@ -233,7 +233,7 @@ def run_online(data: list, p_threshold: float = 0.8, n_samples: int = None):
         bar = "█" * int(acc_w / 5)
         print(f"    decile {w+1:>2}  {acc_w:5.1f}%  {bar}")
     print_stats("done", len(data_sub), fallbacks, time.perf_counter() - t0)
-    wait_for_pending_training()
+    monitor.close()
 
 
 def run_offline(data: list, p_threshold: float = 0.8):
@@ -282,7 +282,7 @@ def run_offline(data: list, p_threshold: float = 0.8):
     
     print(f"Fallback rate: {fb_cnt / total_cnt * 100:.1f}%")
 
-    wait_for_pending_training()
+    monitor.close()
 
 
 
