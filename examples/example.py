@@ -206,7 +206,7 @@ def run_online(data: list, p_threshold: float = 0.8, n_samples: int = None):
         pred_result, fb = monitor(
             TOPIC_TASK, text,
             mode="online",
-            device="cuda:1" if torch.cuda.is_available() else "cpu",
+            device="cuda:0" if torch.cuda.is_available() else "cpu",
             classifier_type="deep_mlp",
         )
         pred = pred_result.get("topic")
