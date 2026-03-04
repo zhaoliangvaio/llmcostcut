@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "llmcompiler"
+name = "llmcostcut"
 version = "0.1.0"
 description = "A framework for selectively invoking LLMs and distilling repeated workloads into smaller models"
 readme = "README.md"
@@ -11,7 +11,7 @@ requires-python = ">=3.8"
 license = {file = "LICENSE"}
 authors = [
     {name = "Liang Zhao", email = "liang.zhao@emory.edu"},
-    {name = "LLMCompiler Team", email = "liang.zhao@emory.edu"}
+    {name = "LLMCostCut Team", email = "liang.zhao@emory.edu"}
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -53,10 +53,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/emory-llmcompiler/llmcompiler"
-Documentation = "https://github.com/emory-llmcompiler/llmcompiler#readme"
-Repository = "https://github.com/emory-llmcompiler/llmcompiler"
-Issues = "https://github.com/emory-llmcompiler/llmcompiler/issues"
+Homepage = "https://github.com/emory-llmcostcut/llmcostcut"
+Documentation = "https://github.com/emory-llmcostcut/llmcostcut#readme"
+Repository = "https://github.com/emory-llmcostcut/llmcostcut"
+Issues = "https://github.com/emory-llmcostcut/llmcostcut/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]

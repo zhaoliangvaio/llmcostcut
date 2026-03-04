@@ -1,24 +1,24 @@
 <p align="center">
-  <img src="assets/llmcompiler_logo.png" alt="LLMCompiler Logo" width="600"/>
+  <img src="assets/llmcostcut_logo.png" alt="LLMCostCut Logo" width="600"/>
 </p>
 
-# LLMCompiler：大语言模型的智能编译器
+# LLMCostCut：大语言模型的智能编译器
 
 **优化。高效。强大。**
 
-[![GitHub](https://img.shields.io/badge/GitHub-Project-181717?logo=github)](https://github.com/zhaoliangvaio/llmcompiler)
+[![GitHub](https://img.shields.io/badge/GitHub-Project-181717?logo=github)](https://github.com/zhaoliangvaio/llmcostcut)
 [![arXiv](https://img.shields.io/badge/arXiv-2602.03006-red?logo=arxiv)](https://arxiv.org/abs/2602.03006)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.8+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![PyPI](https://img.shields.io/pypi/v/llmcompiler?color=blue)](https://pypi.org/project/llmcompiler/)
-<!-- [![PyPI Downloads](https://img.shields.io/pypi/dm/llmcompiler?color=green)](https://pypi.org/project/llmcompiler/) -->
+[![PyPI](https://img.shields.io/pypi/v/llmcostcut?color=blue)](https://pypi.org/project/llmcostcut/)
+<!-- [![PyPI Downloads](https://img.shields.io/pypi/dm/llmcostcut?color=green)](https://pypi.org/project/llmcostcut/) -->
 
 [![中文](https://img.shields.io/badge/中文-README--zh.md-green)](README-zh.md)
 [![English](https://img.shields.io/badge/English-README.md-blue)](README.md)
 
 ---
 
-LLMCompiler 是一个用于**选择性调用 LLM** 并将**重复工作负载蒸馏**到更小学生模型的框架。仅在需要时使用教师 LLM——随着学生模型的学习，LLM 调用逐渐趋近于零，同时保持准确率。该框架适用于多种工业领域，包括**法律**（如案件结果预测、合同条款分类）、**医疗健康**（如放射报告异常分类、临床笔记编码）、**金融**（如情感分析、风险评估）等。
+LLMCostCut 是一个用于**选择性调用 LLM** 并将**重复工作负载蒸馏**到更小学生模型的框架。仅在需要时使用教师 LLM——随着学生模型的学习，LLM 调用逐渐趋近于零，同时保持准确率。该框架适用于多种工业领域，包括**法律**（如案件结果预测、合同条款分类）、**医疗健康**（如放射报告异常分类、临床笔记编码）、**金融**（如情感分析、风险评估）等。
 
 > 💰 **节省 API 成本。** 随着时间推移将 LLM 调用降至趋近于零。学生模型处理大部分查询，仅在不确定时使用教师模型，在保持约 95% 准确率的同时显著降低推理费用。
 
@@ -56,15 +56,15 @@ LLMCompiler 是一个用于**选择性调用 LLM** 并将**重复工作负载蒸
 **从源码安装**（推荐用于开发）
 
 ```bash
-git clone https://github.com/emory-llmcompiler/llmcompiler.git
-cd llmcompiler
+git clone https://github.com/emory-llmcostcut/llmcostcut.git
+cd llmcostcut
 pip install -e .
 ```
 
 **从 PyPI 安装**
 
 ```bash
-pip install llmcompiler
+pip install llmcostcut
 ```
 
 ### 📋 环境要求
@@ -94,7 +94,7 @@ export OPENAI_API_KEY="your-key-here"
 不要每次都直接调用 LLM，而是使用 **`monitor`** 作为智能路由器：它首先尝试小型学生模型；仅当学生模型不确定（置信度低于 `p_threshold`）时才回退到教师 LLM。随着时间推移，学生模型不断学习，LLM 调用逐渐趋近于零。
 
 ```python
-from llmcompiler.monitor import monitor, wait_for_pending_training
+from llmcostcut.monitor import monitor, wait_for_pending_training
 
 # 定义任务和类别（例如新闻主题：World, Sports, Business, Sci/Tech）
 task_id2classes = {"topic": ["World", "Sports", "Business", "Sci/Tech"]}
@@ -156,9 +156,9 @@ wait_for_pending_training()
 ## 📁 项目结构
 
 ```
-llmcompiler/
+llmcostcut/
 ├── src/
-│   └── llmcompiler/
+│   └── llmcostcut/
 │       __init__.py       # 导出 monitor
 │       buffers.py       # 回放缓冲区（RingBuffer、平衡采样）
 │       correctness.py   # 正确性预测器
@@ -229,7 +229,7 @@ llmcompiler/
 使用 `mode="online"` 时，训练在后台线程中运行。在退出或评估学生模型之前，请调用：
 
 ```python
-from llmcompiler.monitor import wait_for_pending_training
+from llmcostcut.monitor import wait_for_pending_training
 wait_for_pending_training()
 ```
 

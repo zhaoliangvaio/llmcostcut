@@ -4,7 +4,7 @@ __pycache__/
 .env
 monitor_async_nonblock.py
 .pytest_cache/
-llmcompiler.egg-info/
+llmcostcut.egg-info/
 test/
 INSTALL.md
 QUICKSTART.md

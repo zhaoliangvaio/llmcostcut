@@ -7,7 +7,7 @@ include pyproject.toml
 include setup.py
 
 # Include all Python files
-recursive-include llmcompiler *.py
+recursive-include llmcostcut *.py
 
 # Exclude unnecessary files
 global-exclude __pycache__

@@ -1,7 +1,7 @@
 """
-AG-News + GCP example for LLMCompiler.
+AG-News + GCP example for LLMCostCut.
 
-End-to-end example: LLMCompiler with GCP classifier on the AG-News dataset,
+End-to-end example: LLMCostCut with GCP classifier on the AG-News dataset,
 with full concept-label supervision at every DAG node.
 
 Concept labels
@@ -46,8 +46,8 @@ from pathlib import Path
 
 import torch
 
-from llmcompiler.monitor import monitor, _registry, wait_for_pending_training
-from llmcompiler.defaults import get_device, get_encoder, get_tokenizer
+from llmcostcut.monitor import monitor, _registry, wait_for_pending_training
+from llmcostcut.defaults import get_device, get_encoder, get_tokenizer
 
 torch.autograd.set_detect_anomaly(True)
 
@@ -291,7 +291,7 @@ def run_offline(data: list, p_threshold: float = 0.8):
 # ---------------------------------------------------------------------------
 
 def main():
-    parser = argparse.ArgumentParser(description="LLMCompiler + GCP with concept labels on AG-News")
+    parser = argparse.ArgumentParser(description="LLMCostCut + GCP with concept labels on AG-News")
     parser.add_argument("--n_samples", type=int, default=None, help="Max samples (default: all)")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--threshold", type=float, default=0.8)

@@ -1,11 +1,11 @@
 """
-LLMCompiler: Adaptive LLM-to-Small-Model Distillation Framework
+LLMCostCut: Adaptive LLM-to-Small-Model Distillation Framework
 
 Copyright (c) 2024–2025
 Liang Zhao and Ziyang Yu
 Emory University
 
-This file is part of the LLMCompiler framework.
+This file is part of the LLMCostCut framework.
 Released under the Apache 2.0 License (see LICENSE).
 
 If you use this code in academic work, please cite:
@@ -18,7 +18,7 @@ Liang Zhao (liang.zhao@emory.edu)
 """
 monitor.py
 
-Core orchestration logic for LLMCompiler.
+Core orchestration logic for LLMCostCut.
 
 Responsibilities:
 - Route inputs through task-specific student models

@@ -1,11 +1,11 @@
 """
-LLMCompiler: Adaptive LLM-to-Small-Model Distillation Framework
+LLMCostCut: Adaptive LLM-to-Small-Model Distillation Framework
 
 Copyright (c) 2024–2025
 Liang Zhao and Ziyang Yu
 Emory University
 
-This file is part of the LLMCompiler framework.
+This file is part of the LLMCostCut framework.
 Released under the Apache 2.0 License (see LICENSE).
 
 If you use this code in academic work, please cite:
@@ -34,7 +34,7 @@ def train_one_round_buff(
 ):
     """Online incremental training: run fixed number of SGD steps each round.
 
-    For :class:`~llmcompiler.models.GCPClassifier`, concept-level supervision
+    For :class:`~llmcostcut.models.GCPClassifier`, concept-level supervision
     is automatically applied via :meth:`forward_with_concepts`.  Each concept
     node's predictor is trained with the same ground-truth label as the final
     task head, weighted by *concept_loss_weight*.
@@ -52,7 +52,7 @@ def train_one_round_buff(
         log_fn (callable, optional): Extra logging sink (receives the summary
             string produced at the end of the round).
         concept_loss_weight (float): Weight applied to each concept-node loss
-            when training a :class:`~llmcompiler.models.GCPClassifier`.
+            when training a :class:`~llmcostcut.models.GCPClassifier`.
             Ignored for all other architectures.  Defaults to ``0.5``.
     """
     classifier.train()
@@ -161,7 +161,7 @@ def compute_node_counterfactual_scores(
     dropout is deterministic; the original state is restored on return.
 
     Args:
-        classifier: A :class:`~llmcompiler.models.GCPClassifier` instance.
+        classifier: A :class:`~llmcostcut.models.GCPClassifier` instance.
         encoding:   CLS embeddings ``[B, hidden_size]`` on the correct device.
         labels:     Ground-truth (final task) label indices ``[B]``.
         criterion:  Loss function used to score the final task logits.
@@ -259,7 +259,7 @@ def submodule_retrain(
     train_tag=None,
     log_fn=None,
 ) -> List[int]:
-    """Targeted sub-module retraining for :class:`~llmcompiler.models.GCPClassifier`.
+    """Targeted sub-module retraining for :class:`~llmcostcut.models.GCPClassifier`.
 
     Implements Algorithm 1 from §3.4 of *Distilling LLM Reasoning into Graph
     of Concept Predictors* (Yu & Zhao, 2026, arXiv:2602.03006):
@@ -276,7 +276,7 @@ def submodule_retrain(
     5. **Restore** — re-enable gradients for all parameters.
 
     Args:
-        classifier: :class:`~llmcompiler.models.GCPClassifier` instance.
+        classifier: :class:`~llmcostcut.models.GCPClassifier` instance.
         loader: DataLoader over the replay buffer (reused from full training).
         device: Torch device.
         optimizer: Persistent optimizer shared with regular training rounds.
@@ -298,7 +298,7 @@ def submodule_retrain(
 
     Raises:
         TypeError: When *classifier* is not a
-            :class:`~llmcompiler.models.GCPClassifier`.
+            :class:`~llmcostcut.models.GCPClassifier`.
     """
     if not isinstance(classifier, GCPClassifier):
         raise TypeError(

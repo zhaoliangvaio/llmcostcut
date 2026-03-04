@@ -1,24 +1,24 @@
 <p align="center">
-  <img src="assets/llmcompiler_logo.png" alt="LLMCompiler Logo" width="600"/>
+  <img src="assets/llmcostcut_logo.png" alt="LLMCostCut Logo" width="600"/>
 </p>
 
-# LLMCompiler: The Intelligent Compiler for Large Language Models
+# LLMCostCut: The Intelligent Compiler for Large Language Models
 
 **Optimized. Efficient. Powerful.**
 
-[![GitHub](https://img.shields.io/badge/GitHub-Project-181717?logo=github)](https://github.com/zhaoliangvaio/llmcompiler)
+[![GitHub](https://img.shields.io/badge/GitHub-Project-181717?logo=github)](https://github.com/zhaoliangvaio/llmcostcut)
 [![arXiv](https://img.shields.io/badge/arXiv-2602.03006-red?logo=arxiv)](https://arxiv.org/abs/2602.03006)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.8+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![PyPI](https://img.shields.io/pypi/v/llmcompiler?color=blue)](https://pypi.org/project/llmcompiler/)
-<!-- [![PyPI Downloads](https://img.shields.io/pypi/dm/llmcompiler?color=green)](https://pypi.org/project/llmcompiler/) -->
+[![PyPI](https://img.shields.io/pypi/v/llmcostcut?color=blue)](https://pypi.org/project/llmcostcut/)
+<!-- [![PyPI Downloads](https://img.shields.io/pypi/dm/llmcostcut?color=green)](https://pypi.org/project/llmcostcut/) -->
 
 [![中文](https://img.shields.io/badge/中文-README--zh.md-green)](README-zh.md)
 [![English](https://img.shields.io/badge/English-README.md-blue)](README.md)
 
 ---
 
-LLMCompiler is a framework for **selectively invoking LLMs** and **distilling repeated workloads** into smaller student models. Use a teacher LLM only when needed — as the student learns, LLM calls drop toward zero while preserving accuracy. The framework is applicable across diverse industrial domains, including **Legal** (e.g., Case Outcome Prediction, Contract Clause Classification), **Healthcare** (e.g., Radiology Report Abnormality Classification, Clinical Note Coding), **Finance** (e.g., Sentiment Analysis, Risk Assessment), and more.
+LLMCostCut is a framework for **selectively invoking LLMs** and **distilling repeated workloads** into smaller student models. Use a teacher LLM only when needed — as the student learns, LLM calls drop toward zero while preserving accuracy. The framework is applicable across diverse industrial domains, including **Legal** (e.g., Case Outcome Prediction, Contract Clause Classification), **Healthcare** (e.g., Radiology Report Abnormality Classification, Clinical Note Coding), **Finance** (e.g., Sentiment Analysis, Risk Assessment), and more.
 
 <!-- > 💰 **Save on API costs.** Reduce LLM calls toward zero over time. With the student handling most queries and the teacher only used when uncertain, you cut inference bills significantly while maintaining ~95% accuracy. -->
 
@@ -56,15 +56,15 @@ LLMCompiler is a framework for **selectively invoking LLMs** and **distilling re
 **Install from source** (recommended for development)
 
 ```bash
-git clone https://github.com/emory-llmcompiler/llmcompiler.git
-cd llmcompiler
+git clone https://github.com/emory-llmcostcut/llmcostcut.git
+cd llmcostcut
 pip install -e .
 ```
 
 **Install from PyPI**
 
 ```bash
-pip install llmcompiler
+pip install llmcostcut
 ```
 
 ### 📋 Requirements
@@ -94,7 +94,7 @@ Or put `OPENAI_API_KEY=your-key-here` in a `.env` file in the project root (load
 Instead of calling the LLM directly every time, use **`monitor`** as a smart router: it first tries the small student model; only when the student is uncertain (confidence below `p_threshold`) does it fall back to the teacher LLM. Over time, the student learns and LLM calls drop toward zero.
 
 ```python
-from llmcompiler.monitor import monitor, wait_for_pending_training
+from llmcostcut.monitor import monitor, wait_for_pending_training
 
 # Define your task and classes (e.g. news topic: World, Sports, Business, Sci/Tech)
 task_id2classes = {"topic": ["World", "Sports", "Business", "Sci/Tech"]}
@@ -156,9 +156,9 @@ On AGNews, our distilled student models achieve performance **approximately comp
 ## 📁 Project Structure
 
 ```
-llmcompiler/
+llmcostcut/
 ├── src/
-│   └── llmcompiler/
+│   └── llmcostcut/
 │       __init__.py       # Exports monitor
 │       buffers.py       # Replay buffer (RingBuffer, balanced sampling)
 │       correctness.py   # Correctness predictor
@@ -229,7 +229,7 @@ A 2-tuple `(results, fallback)`:
 When using `mode="online"`, training runs in a background thread. Before exit or before evaluating the student, call:
 
 ```python
-from llmcompiler.monitor import wait_for_pending_training
+from llmcostcut.monitor import wait_for_pending_training
 wait_for_pending_training()
 ```
 
