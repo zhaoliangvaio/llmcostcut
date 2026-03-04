@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Test whether the LLMCompiler package is installed correctly.
+Test whether the LLMCostCut package is installed correctly.
 
 Run:
     python test_installation.py
@@ -9,7 +9,7 @@ Run:
 def test_import():
     """Test basic import."""
     try:
-        from llmcompiler import monitor
+        from llmcostcut import monitor
         print("✅ Successfully imported monitor")
         return True
     except ImportError as e:
@@ -19,7 +19,7 @@ def test_import():
 def test_submodules():
     """Test submodule imports."""
     try:
-        from llmcompiler import task, models, buffers, correctness, trainer, registry, defaults
+        from llmcostcut import task, models, buffers, correctness, trainer, registry, defaults
         print("✅ Successfully imported all submodules")
         return True
     except ImportError as e:
@@ -29,7 +29,7 @@ def test_submodules():
 def test_monitor_signature():
     """Test monitor function signature."""
     try:
-        from llmcompiler import monitor
+        from llmcostcut import monitor
         import inspect
         
         sig = inspect.signature(monitor)
@@ -51,7 +51,7 @@ def test_monitor_signature():
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("LLMCompiler Installation Test")
+    print("LLMCostCut Installation Test")
     print("=" * 60)
     print()
     
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     
     print("=" * 60)
     if all(results):
-        print("✅ All tests passed! LLMCompiler installed successfully.")
+        print("✅ All tests passed! LLMCostCut installed successfully.")
         exit(0)
     else:
         print("❌ Some tests failed. Please check the installation.")

@@ -1,5 +1,5 @@
 """
-LLMCompiler: Adaptive LLM-to-Small-Model Distillation Framework
+LLMCostCut: Adaptive LLM-to-Small-Model Distillation Framework
 
 Main API:
     monitor: Core function for adaptive inference and automatic distillation
