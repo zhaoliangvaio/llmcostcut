@@ -18,26 +18,12 @@
 
 ---
 
-As LLM becomes more and more popular, the cost of using LLM is becoming a major concern. LLMCostCut is a discrimninative workload for LLM to reduce the cost of using LLM while maintaining the accuracy.
+As LLM becomes more and more popular, the cost of using LLM is becoming a major concern. LLMCostCut is a discriminative workload for LLM to reduce the cost of using LLM while maintaining the accuracy.
 
-
-## Applications
-
-| ⚖️ **Legal** | 🏥 **Healthcare** | 💼 **Finance** |
-|--------------|-------------------|----------------|
-| - Case Outcome Prediction<br>- Contract Clause Classification | - Radiology Report Abnormality Classification<br>- Clinical Note Coding | - Sentiment Analysis<br>- Risk Assessment |
-
-
-## 🎯 Key Features
-
-| 📈 **Accuracy up to 95%** | 💰 **Around 10× Cost Reduction** | ⚡ **Nearly 1000× Speedup** | 🛠️ **Easy to Use** |
-|---------------------------|---------------------------|----------------------|-------------------|
-| Maintain near-teacher quality while cutting LLM calls toward zero | Student handles most queries; teacher only when uncertain — inference bills drop dramatically | Small student model (100k parameters) inference vs. LLM (1T parameters) API calls — orders of magnitude faster | Minimal code changes — Runnable in few lines of code |
-
----
 
 ## Table of Contents
 
+- 📋 [Applications](#applications)
 - 🎯 [Key Features](#key-features)
 - 📦 [Installation](#installation)
   - 📋 [Requirements](#requirements)
@@ -53,6 +39,21 @@ As LLM becomes more and more popular, the cost of using LLM is becoming a major 
 - 📐 [Graph of Concepts](#graph-of-concepts)
 - 📖 [Citation](#citation)
 - 🙏 [Acknowledgements](#acknowledgements)
+
+
+## 📋 Applications
+
+| ⚖️ **Legal** | 🏥 **Healthcare** | 💼 **Finance** |
+|--------------|-------------------|----------------|
+| - Case Outcome Prediction<br>- Contract Clause Classification | - Radiology Report Abnormality Classification<br>- Clinical Note Coding | - Sentiment Analysis<br>- Risk Assessment |
+
+
+## 🎯 Key Features
+
+| 📈 **Accuracy up to 95%** | 💰 **Around 10× Cost Reduction** | ⚡ **Nearly 1000× Speedup** | 🛠️ **Easy to Use** |
+|---------------------------|---------------------------|----------------------|-------------------|
+| Maintain near-teacher quality while cutting LLM calls toward zero | Student handles most queries; teacher only when uncertain — inference bills drop dramatically | Small student model (100k parameters) inference vs. LLM (1T parameters) API calls — orders of magnitude faster | Minimal code changes — Runnable in few lines of code |
+
 
 ---
 
@@ -194,7 +195,7 @@ System accuracy stays close to the teacher baseline (100%) during training. Desp
 
 ![AGNews Benchmark](benchmark_compare.png)
 
-Across AGNews, SemEval, and Amazon, our distilled student models **surpass the teacher LLM baseline**: GCP reaches 97.6%, 96.5%, and 97.8% respectively, while MLP achieves 95.8%, 93.6%, and 95.7%. This demonstrates that the framework preserves prediction quality  while enabling efficient inference.
+Across AGNews, SemEval, and Amazon, our distilled student models **approximately comparable to the teacher LLM baseline**: GCP reaches 97.6%, 96.5%, and 97.8% respectively, while MLP achieves 95.8%, 93.6%, and 95.7%. This demonstrates that the framework preserves prediction quality  while enabling efficient inference.
 
 
 
