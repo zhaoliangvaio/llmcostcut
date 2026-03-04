@@ -18,15 +18,21 @@
 
 ---
 
-LLMCostCut is a framework for **selectively invoking LLMs** and **distilling repeated workloads** into smaller student models. Use a teacher LLM only when needed — as the student learns, LLM calls drop toward zero while preserving accuracy. The framework is applicable across diverse industrial domains, including **Legal** (e.g., Case Outcome Prediction, Contract Clause Classification), **Healthcare** (e.g., Radiology Report Abnormality Classification, Clinical Note Coding), **Finance** (e.g., Sentiment Analysis, Risk Assessment), and more.
+As LLM becomes more and more popular, the cost of using LLM is becoming a major concern. LLMCostCut is a discrimninative workload for LLM to reduce the cost of using LLM while maintaining the accuracy.
 
-<!-- > 💰 **Save on API costs.** Reduce LLM calls toward zero over time. With the student handling most queries and the teacher only used when uncertain, you cut inference bills significantly while maintaining ~95% accuracy. -->
+
+## Applications
+
+| ⚖️ **Legal** | 🏥 **Healthcare** | 💼 **Finance** |
+|--------------|-------------------|----------------|
+| - Case Outcome Prediction<br>- Contract Clause Classification | - Radiology Report Abnormality Classification<br>- Clinical Note Coding | - Sentiment Analysis<br>- Risk Assessment |
+
 
 ## 🎯 Key Features
 
-| 📈 **Accuracy up to 95%** | 💰 **10× Cost Reduction** | ⚡ **1000× Speedup** |
-|---------------------------|---------------------------|----------------------|
-| Maintain near-teacher quality while cutting LLM calls toward zero | Student handles most queries; teacher only when uncertain — inference bills drop dramatically | Small student model inference vs. LLM API calls — orders of magnitude faster |
+| 📈 **Accuracy up to 95%** | 💰 **Around 10× Cost Reduction** | ⚡ **Nearly 1000× Speedup** | 🛠️ **Easy to Use** |
+|---------------------------|---------------------------|----------------------|-------------------|
+| Maintain near-teacher quality while cutting LLM calls toward zero | Student handles most queries; teacher only when uncertain — inference bills drop dramatically | Small student model (100k parameters) inference vs. LLM (1T parameters) API calls — orders of magnitude faster | Minimal code changes — Runnable in few lines of code |
 
 ---
 
@@ -38,13 +44,13 @@ LLMCostCut is a framework for **selectively invoking LLMs** and **distilling rep
 - 🚀 [Quick Start](#quick-start)
 - ⚙️ [How It Works](#how-it-works)
 - 📊 [Experimental Results](#experimental-results)
-  - 📉 [Fallback Mechanism](#fallback-mechanism)
   - 📈 [Accuracy](#accuracy)
   - 💰 [Cost Reduction](#cost-reduction)
+  - 📊 [Benchmarks Comparison](#benchmarks-comparison)
 - 📁 [Project Structure](#project-structure)
 - 📚 [API Reference](#api-reference)
   - 🔧 [monitor()](#monitor---main-parameters)
-  - ⏳ [wait_for_pending_training()](#wait_for_pending_training)
+  - ⏳ [monitor.close() / monitor.start()](#monitorclose--monitorstart)
 - 📐 [Graph of Concepts](#graph-of-concepts)
 - 📖 [Citation](#citation)
 - 🙏 [Acknowledgements](#acknowledgements)
@@ -94,20 +100,71 @@ Or put `OPENAI_API_KEY=your-key-here` in a `.env` file in the project root (load
 Instead of calling the LLM directly every time, use **`monitor`** as a smart router: it first tries the small student model; only when the student is uncertain (confidence below `p_threshold`) does it fall back to the teacher LLM. Over time, the student learns and LLM calls drop toward zero.
 
 ```python
-from llmcostcut.monitor import monitor, wait_for_pending_training
+"""
+Simple LLMCompiler example: reduce LLM API call cost on AG-News.
 
-# Define your task and classes (e.g. news topic: World, Sports, Business, Sci/Tech)
-task_id2classes = {"topic": ["World", "Sports", "Business", "Sci/Tech"]}
+LLMCompiler trains a small student (DistilBERT + MLP) on-the-fly.
+It only calls the teacher LLM when the student is not confident enough.
+As the student learns, LLM call rate drops — cutting API cost.
 
-# monitor switches between student (small model) and LLM automatically
-results, fallback = monitor(
-    task_id2classes,
-    "The Nobel physicist's quantum startup now supplies chips to military satellites.",  # Crosses World, Sci/Tech, Business
-    mode="online",           # or "offline"
-    p_threshold=0.8,         # below this: use LLM; above: use student
-)
-# When using online mode, wait for background training before exit
-wait_for_pending_training()
+Usage:
+export OPENAI_API_KEY=sk-...
+python examples/simple_cost_reduction.py
+"""
+
+import random
+from datasets import load_dataset
+from llmcompiler.monitor import monitor, wait_for_pending_training
+
+# --- Benchmark: AG-News (4-class topic classification) ---
+ds = load_dataset("ag_news", split="train[:500]") # 500 samples for quick demo
+LABEL_MAP = {0: "World", 1: "Sports", 2: "Business", 3: "Sci/Tech"}
+samples = [(row["text"], LABEL_MAP[row["label"]]) for row in ds]
+random.shuffle(samples)
+
+TASK = {"topic": ["World", "Sports", "Business", "Sci/Tech"]}
+
+# --- Optional: plug in your own LLM function (e.g. Claude, GPT-4) ---
+# Signature: llm_fn(texts, task_id2classes) -> list[dict[task_id, label]]
+# Leave llm_fn=None to use the built-in OpenAI teacher (reads OPENAI_API_KEY).
+def my_llm_fn(texts, task_id2classes, **kwargs):
+  import openai
+  client = openai.OpenAI()
+  results = []
+  for text in texts:
+  classes = task_id2classes["topic"]
+  resp = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[{
+    "role": "user",
+    "content": f"Classify the news into one of {classes}.\nText: {text[:300]}\nReply with only the label."
+    }],
+    max_tokens=10,
+  )
+  label = resp.choices[0].message.content.strip()
+  label = label if label in classes else classes[0] # fallback
+  results.append({"topic": label})
+  return results
+
+# --- Stream samples through monitor(); watch LLM call rate drop ---
+llm_calls, correct, total = 0, 0, len(samples)
+
+for i, (text, true_label) in enumerate(samples):
+  pred, used_llm = monitor(TASK, text, llm_fn=my_llm_fn, mode="online")
+
+if used_llm:
+  llm_calls += 1
+if pred.get("topic") == true_label:
+  correct += 1
+
+# Print progress every 100 samples
+if (i + 1) % 100 == 0:
+  print(f"[{i+1:>4}/{total}] LLM-rate: {llm_calls/(i+1)*100:.1f}% "
+  f"Accuracy: {correct/(i+1)*100:.1f}%")
+
+monitor.close()
+print(f"\nFinal — total LLM calls: {llm_calls}/{total} ({llm_calls/total*100:.1f}%)")
+print(f"Final — accuracy: {correct}/{total} ({correct/total*100:.1f}%)")
 ```
 
 See **[examples/example.py](examples/example.py)** for a full AG-News demo with GCP classifier and concept-level labels.
@@ -116,10 +173,7 @@ See **[examples/example.py](examples/example.py)** for a full AG-News demo with 
 
 ## ⚙️ How It Works
 
-1. **Student prediction** — Classify input with the small model.
-2. **Confidence** — Estimate reliability of the prediction.
-3. **Fallback** — If confidence ≥ `p_threshold`, return student output; otherwise call the teacher LLM.
-4. **Online learning** — Store (text, teacher labels) in a replay buffer and periodically retrain the student and correctness predictor. For GCP, optional sub-module retraining refines selected concept nodes.
+![LLMCostCut Architecture](diagram.png)
 
 ---
 
@@ -131,23 +185,17 @@ See **[examples/example.py](examples/example.py)** for a full AG-News demo with 
 
 The inference cost decreases over time as the student model handles more queries and the fallback to the teacher LLM becomes less frequent.
 
-### 📉 Fallback Mechanism
-
-![Fallback](fallback.png)
-
-The fallback ratio (teacher/LLM utilization) decreases over iterations as the student becomes more capable. Early on, the system relies on the teacher for correctness; as online distillation progresses, the student handles more queries, reducing LLM calls toward zero by around iteration 100.
-
 ### 📈 Accuracy
 
 ![Accuracy](acc.png)
 
 System accuracy stays close to the teacher baseline (100%) during training. Despite the drop in LLM fallback, accuracy stabilizes around 95% after the initial phase, showing that the distilled student preserves quality while cutting inference cost.
 
-**AGNews Benchmark Comparison**
+### 📊 Benchmarks Comparison
 
 ![AGNews Benchmark](benchmark_compare.png)
 
-On AGNews, our distilled student models achieve performance **approximately comparable to the LLM baseline**: GCP reaches 81.4% and MLP 79.9%, close to the teacher LLM (4o-mini) at 83.4%. This demonstrates that the framework preserves prediction quality while enabling efficient inference.
+Across AGNews, SemEval, and Amazon, our distilled student models **surpass the teacher LLM baseline**: GCP reaches 97.6%, 96.5%, and 97.8% respectively, while MLP achieves 95.8%, 93.6%, and 95.7%. This demonstrates that the framework preserves prediction quality  while enabling efficient inference.
 
 
 
@@ -223,22 +271,23 @@ A 2-tuple `(results, fallback)`:
 | Single `str` | `dict[str, str]` | `bool` |
 | list/tuple str | `list[dict[str, str]]` | `list[bool]` |
 
-### ⏳ `wait_for_pending_training()`
+<!-- ### ⏳ `monitor.close()` / `monitor.start()`
 
-When using `mode="online"`, training runs in a background thread. Before exit or before evaluating the student, call:
+When using `mode="online"`, training runs in a background thread. Before exit or before evaluating the student, either call `monitor.close()` explicitly or use the context manager:
 
 ```python
-from llmcostcut.monitor import wait_for_pending_training
-wait_for_pending_training()
-```
+from llmcostcut.monitor import monitor
+
+# Explicit close
+monitor.close()
+
+# Or use context manager (auto-closes on exit)
+with monitor.start():
+    results, fallback = monitor(task_id2classes, text, mode="online")
+``` -->
 
 ---
 
-## 📐 Graph of Concepts
-
-The **Graph of Concepts (GCP)** is a reasoning-aware distillation architecture introduced in our paper. It mirrors the teacher LLM's reasoning process as a **Directed Acyclic Graph (DAG)** of concept nodes. Each node maintains a concept embedding and a node-specific predictor; information propagates from parent nodes to children through learnable transitions, and sink nodes produce the final task prediction. By structuring the student as a concept graph, GCP preserves interpretable intermediate reasoning while enabling efficient distillation and optional sub-module retraining for selected concept nodes.
-
----
 
 ## 📖 Citation
 
