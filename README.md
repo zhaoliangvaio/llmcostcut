@@ -21,23 +21,9 @@
 As LLM becomes more and more popular, the cost of using LLM is becoming a major concern. LLMCostCut is a discrimninative workload for LLM to reduce the cost of using LLM while maintaining the accuracy.
 
 
-## 📋 Applications
-
-| ⚖️ **Legal** | 🏥 **Healthcare** | 💼 **Finance** |
-|--------------|-------------------|----------------|
-| - Case Outcome Prediction<br>- Contract Clause Classification | - Radiology Report Abnormality Classification<br>- Clinical Note Coding | - Sentiment Analysis<br>- Risk Assessment |
-
-
-## 🎯 Key Features
-
-| 📈 **Accuracy up to 95%** | 💰 **Around 10× Cost Reduction** | ⚡ **Nearly 1000× Speedup** | 🛠️ **Easy to Use** |
-|---------------------------|---------------------------|----------------------|-------------------|
-| Maintain near-teacher quality while cutting LLM calls toward zero | Student handles most queries; teacher only when uncertain — inference bills drop dramatically | Small student model (100k parameters) inference vs. LLM (1T parameters) API calls — orders of magnitude faster | Minimal code changes — Runnable in few lines of code |
-
----
-
 ## Table of Contents
 
+- 📋 [Applications](#applications)
 - 🎯 [Key Features](#key-features)
 - 📦 [Installation](#installation)
   - 📋 [Requirements](#requirements)
@@ -53,6 +39,21 @@ As LLM becomes more and more popular, the cost of using LLM is becoming a major 
 - 📐 [Graph of Concepts](#graph-of-concepts)
 - 📖 [Citation](#citation)
 - 🙏 [Acknowledgements](#acknowledgements)
+
+
+## 📋 Applications
+
+| ⚖️ **Legal** | 🏥 **Healthcare** | 💼 **Finance** |
+|--------------|-------------------|----------------|
+| - Case Outcome Prediction<br>- Contract Clause Classification | - Radiology Report Abnormality Classification<br>- Clinical Note Coding | - Sentiment Analysis<br>- Risk Assessment |
+
+
+## 🎯 Key Features
+
+| 📈 **Accuracy up to 95%** | 💰 **Around 10× Cost Reduction** | ⚡ **Nearly 1000× Speedup** | 🛠️ **Easy to Use** |
+|---------------------------|---------------------------|----------------------|-------------------|
+| Maintain near-teacher quality while cutting LLM calls toward zero | Student handles most queries; teacher only when uncertain — inference bills drop dramatically | Small student model (100k parameters) inference vs. LLM (1T parameters) API calls — orders of magnitude faster | Minimal code changes — Runnable in few lines of code |
+
 
 ---
 
