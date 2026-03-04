@@ -195,7 +195,7 @@ System accuracy stays close to the teacher baseline (100%) during training. Desp
 
 ![AGNews Benchmark](benchmark_compare.png)
 
-Across AGNews, SemEval, and Amazon, our distilled student models **surpass the teacher LLM baseline**: GCP reaches 97.6%, 96.5%, and 97.8% respectively, while MLP achieves 95.8%, 93.6%, and 95.7%. This demonstrates that the framework preserves prediction quality  while enabling efficient inference.
+Across AGNews, SemEval, and Amazon, our distilled student models **approximately comparable to the teacher LLM baseline**: GCP reaches 97.6%, 96.5%, and 97.8% respectively, while MLP achieves 95.8%, 93.6%, and 95.7%. This demonstrates that the framework preserves prediction quality  while enabling efficient inference.
 
 
 
