@@ -195,7 +195,7 @@ print(f"最终 — 准确率: {correct}/{total} ({correct/total*100:.1f}%)")
 
 ![AGNews 基准](benchmark_compare.png)
 
-在 AGNews、SemEval 和 Amazon 上，我们的蒸馏学生模型**与教师 LLM 基线大致相当**：GCP 分别达到 97.6%、96.5% 和 97.8%，而 MLP 达到 95.8%、93.6% 和 95.7%。这证明该框架在实现高效推理的同时保持了预测质量。
+在 AGNews、SemEval 和 Amazon 上，我们的蒸馏学生模型**与教师 LLM 基线大致相当**（*相对准确率*）：GCP 分别达到 97.6%、96.5% 和 97.8%，而 MLP 达到 95.8%、93.6% 和 95.7%。这证明该框架在实现高效推理的同时保持了预测质量。
 
 
 
