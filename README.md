@@ -214,7 +214,7 @@ llmcostcut/
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `llm_fn` | built-in OpenAI | Teacher function. Custom signature: `llm_fn(texts, task_id2classes, **kwargs)`. |
+| `llm_fn` | built-in OpenAI | Teacher function. Custom signature: `llm_fn(texts, tasks, **kwargs)`. |
 | `p_threshold` | `0.8` | Min confidence to trust the student; below this, use LLM. |
 | `classifier_type` | `"deep_mlp"` | Student head: `"deep_mlp"` or `"gcp"`. |
 | `classifier_kwargs` | `None` | Architecture-specific kwargs (see below). |
