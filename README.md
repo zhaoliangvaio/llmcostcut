@@ -106,18 +106,18 @@ from datasets import load_dataset
 from llmcostcut.monitor import monitor
 from openai import OpenAI
 
-def classify_with_llm(texts, task, **_):
-    labels, client, results = task["topic"], OpenAI(), []
+def classify_with_llm(texts, task):
+    labels, client, results = task["topic_classification"], OpenAI(), []
     for text in texts:
         r = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role":"user","content":f"Classify into {labels}. Text: {text[:300]}"}],
             max_tokens=10,
         )
-        results.append({"topic": r.choices[0].message.content.strip()})
+        results.append({"topic_classification": r.choices[0].message.content.strip()})
     return results
 
-TASK = {"topic": ["World","Sports","Business","Sci/Tech"]}
+TASK = {"topic_classification": ["World","Sports","Business","Sci/Tech"]}
 
 for example in load_dataset("ag_news", split="train[:100]"):
     prediction, used_llm = monitor(TASK, example["text"], llm_fn=classify_with_llm, mode="online")
