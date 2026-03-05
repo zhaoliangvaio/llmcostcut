@@ -155,7 +155,7 @@ System accuracy stays close to the teacher baseline (100%) during training. Desp
 | MIMIC-CXR Dataset | 93.6 | 96.5 |
 | American Express - Default Prediction Dataset | 95.7 | 97.8 |
 
-Across Supreme Court Judgment Prediction Dataset, MIMIC-CXR Dataset, and American Express - Default Prediction Dataset, our distilled student models **approximately comparable to the teacher LLM baseline**: GCP reaches 97.6%, 96.5%, and 97.8% respectively, while MLP achieves 95.8%, 93.6%, and 95.7%. This demonstrates that the framework preserves prediction quality  while enabling efficient inference.
+Across [Supreme Court Judgment Prediction Dataset](https://www.kaggle.com/datasets/deepcontractor/supreme-court-judgment-prediction), [MIMIC-CXR Dataset](https://physionet.org/content/mimic-cxr/2.1.0/), and [American Express - Default Prediction Dataset](https://www.kaggle.com/competitions/amex-default-prediction), our distilled student models **approximately comparable to the teacher LLM baseline**: GCP reaches 97.6%, 96.5%, and 97.8% respectively, while MLP achieves 95.8%, 93.6%, and 95.7%. This demonstrates that the framework preserves prediction quality  while enabling efficient inference.
 
 
 
