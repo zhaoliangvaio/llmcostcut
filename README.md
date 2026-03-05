@@ -54,7 +54,7 @@ As LLM becomes more and more popular, the cost of using LLM is becoming a major 
 |---------------------------|---------------------------|----------------------|-------------------|
 | Maintain near-teacher quality while cutting LLM calls toward zero | Student handles most queries; teacher only when uncertain — inference bills drop dramatically | Local small student model inference vs. LLM (1T params) API calls — orders of magnitude faster in latency | Minimal code changes — Runnable in few lines of code |
 
-**Student model accounting:** The student pipeline = **frozen encoder** (default: DistilBERT ~66M params) + **trainable head** (DeepMLP or GCP, ~100k–2M params depending on config). The "1000× speedup" refers to **latency** (local forward pass vs. LLM API round-trip); cost reduction is separate (see [Cost Reduction](#-cost-reduction)).
+**Student model accounting:** The student pipeline = **frozen encoder** (default: DistilBERT ~66M params) + **trainable head** (DeepMLP or GCP, ~100k–2M params depending on config).
 
 
 ---
