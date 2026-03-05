@@ -201,7 +201,7 @@ llmcostcut/
 
 #### Required
 
-- **`task_id2classes`** (`dict[str, list[str]]`): Task ID → list of allowed class labels.
+- **`tasks`** (`dict[str, list[str]]`): Task ID → list of allowed class labels.
   ```python
   {"task1": ["class1", "class2"], "task2": ["A", "B", "C"]}
   ```
