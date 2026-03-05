@@ -52,7 +52,9 @@ As LLM becomes more and more popular, the cost of using LLM is becoming a major 
 
 | 📈 **Accuracy up to 95%** | 💰 **Around 10× Cost Reduction** | ⚡ **Nearly 1000× Speedup** | 🛠️ **Easy to Use** |
 |---------------------------|---------------------------|----------------------|-------------------|
-| Maintain near-teacher quality while cutting LLM calls toward zero | Student handles most queries; teacher only when uncertain — inference bills drop dramatically | Small student model (100k parameters) inference vs. LLM (1T parameters) API calls — orders of magnitude faster | Minimal code changes — Runnable in few lines of code |
+| Maintain near-teacher quality while cutting LLM calls toward zero | Student handles most queries; teacher only when uncertain — inference bills drop dramatically | Local small student model (~100k–2M params) inference vs. LLM (~1T params) API calls — orders of magnitude faster in latency | Minimal code changes — Runnable in few lines of code |
+
+**Student model accounting:** The student pipeline = **frozen encoder** (default: DistilBERT ~66M params) + **trainable head** (DeepMLP or GCP, ~100k–2M params depending on config). The "1000× speedup" refers to **latency** (local forward pass vs. LLM API round-trip); cost reduction is separate (see [Cost Reduction](#-cost-reduction)).
 
 
 ---
@@ -62,7 +64,7 @@ As LLM becomes more and more popular, the cost of using LLM is becoming a major 
 **Install from source** (recommended for development)
 
 ```bash
-git clone https://github.com/emory-llmcostcut/llmcostcut.git
+git clone https://github.com/zhaoliangvaio/llmcostcut.git
 cd llmcostcut
 pip install -e .
 ```
