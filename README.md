@@ -103,7 +103,7 @@ Instead of calling the LLM directly every time, use **`monitor`** as a smart rou
 
 ```python
 from datasets import load_dataset
-from llmcompiler.monitor import monitor
+from llmcostcut.monitor import monitor
 from openai import OpenAI
 
 def classify_with_llm(texts, task, **_):
@@ -226,27 +226,12 @@ llmcostcut/
 
 #### Return value
 
-A 2-tuple `(results, fallback)`:
+A 2-tuple `(results, used_llm)`:
 
-| Input | `results` | `fallback` |
+| Input | `results` | `used_llm` |
 |-------|------------|------------|
 | Single `str` | `dict[str, str]` | `bool` |
 | list/tuple str | `list[dict[str, str]]` | `list[bool]` |
-
-<!-- ### ⏳ `monitor.close()` / `monitor.start()`
-
-When using `mode="online"`, training runs in a background thread. Before exit or before evaluating the student, either call `monitor.close()` explicitly or use the context manager:
-
-```python
-from llmcostcut.monitor import monitor
-
-# Explicit close
-monitor.close()
-
-# Or use context manager (auto-closes on exit)
-with monitor.start():
-    results, fallback = monitor(task_id2classes, text, mode="online")
-``` -->
 
 ---
 
