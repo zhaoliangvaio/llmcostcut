@@ -45,7 +45,7 @@ As LLM becomes more and more popular, the cost of using LLM is becoming a major 
 
 | ⚖️ **Legal** | 🏥 **Healthcare** | 💼 **Finance** |
 |--------------|-------------------|----------------|
-| - Case Outcome Prediction<br>- Contract Clause Classification | - Radiology Report Abnormality Classification<br>- Clinical Note Coding | - Sentiment Analysis<br>- Risk Assessment |
+| - Case Outcome Prediction<br>- Contract Clause Classification<br>- Legal Reasoning / Multi-hop QA | - Radiology Report Abnormality Classification<br>- Clinical Note Coding<br>- Medical NER / Drug-Drug Interaction | - Sentiment Analysis<br>- Risk Assessment<br>- Fraud Detection / Financial QA |
 
 
 ## 🎯 Key Features
@@ -100,71 +100,27 @@ Or put `OPENAI_API_KEY=your-key-here` in a `.env` file in the project root (load
 Instead of calling the LLM directly every time, use **`monitor`** as a smart router: it first tries the small student model; only when the student is uncertain (confidence below `p_threshold`) does it fall back to the teacher LLM. Over time, the student learns and LLM calls drop toward zero.
 
 ```python
-"""
-Simple LLMCompiler example: reduce LLM API call cost on AG-News.
-
-LLMCompiler trains a small student (DistilBERT + MLP) on-the-fly.
-It only calls the teacher LLM when the student is not confident enough.
-As the student learns, LLM call rate drops — cutting API cost.
-
-Usage:
-export OPENAI_API_KEY=sk-...
-python examples/simple_cost_reduction.py
-"""
-
-import random
 from datasets import load_dataset
-from llmcompiler.monitor import monitor, wait_for_pending_training
+from llmcompiler.monitor import monitor
+from openai import OpenAI
 
-# --- Benchmark: AG-News (4-class topic classification) ---
-ds = load_dataset("ag_news", split="train[:500]") # 500 samples for quick demo
-LABEL_MAP = {0: "World", 1: "Sports", 2: "Business", 3: "Sci/Tech"}
-samples = [(row["text"], LABEL_MAP[row["label"]]) for row in ds]
-random.shuffle(samples)
+def classify_with_llm(texts, task, **_):
+    labels, client, results = task["topic"], OpenAI(), []
+    for text in texts:
+        r = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role":"user","content":f"Classify into {labels}. Text: {text[:300]}"}],
+            max_tokens=10,
+        )
+        results.append({"topic": r.choices[0].message.content.strip()})
+    return results
 
-TASK = {"topic": ["World", "Sports", "Business", "Sci/Tech"]}
+TASK = {"topic": ["World","Sports","Business","Sci/Tech"]}
 
-# --- Optional: plug in your own LLM function (e.g. Claude, GPT-4) ---
-# Signature: llm_fn(texts, task_id2classes) -> list[dict[task_id, label]]
-# Leave llm_fn=None to use the built-in OpenAI teacher (reads OPENAI_API_KEY).
-def my_llm_fn(texts, task_id2classes, **kwargs):
-  import openai
-  client = openai.OpenAI()
-  results = []
-  for text in texts:
-  classes = task_id2classes["topic"]
-  resp = client.chat.completions.create(
-    model="gpt-4o-mini",
-    messages=[{
-    "role": "user",
-    "content": f"Classify the news into one of {classes}.\nText: {text[:300]}\nReply with only the label."
-    }],
-    max_tokens=10,
-  )
-  label = resp.choices[0].message.content.strip()
-  label = label if label in classes else classes[0] # fallback
-  results.append({"topic": label})
-  return results
-
-# --- Stream samples through monitor(); watch LLM call rate drop ---
-llm_calls, correct, total = 0, 0, len(samples)
-
-for i, (text, true_label) in enumerate(samples):
-  pred, used_llm = monitor(TASK, text, llm_fn=my_llm_fn, mode="online")
-
-if used_llm:
-  llm_calls += 1
-if pred.get("topic") == true_label:
-  correct += 1
-
-# Print progress every 100 samples
-if (i + 1) % 100 == 0:
-  print(f"[{i+1:>4}/{total}] LLM-rate: {llm_calls/(i+1)*100:.1f}% "
-  f"Accuracy: {correct/(i+1)*100:.1f}%")
+for example in load_dataset("ag_news", split="train[:100]"):
+    prediction, used_llm = monitor(TASK, example["text"], llm_fn=classify_with_llm, mode="online")
 
 monitor.close()
-print(f"\nFinal — total LLM calls: {llm_calls}/{total} ({llm_calls/total*100:.1f}%)")
-print(f"Final — accuracy: {correct}/{total} ({correct/total*100:.1f}%)")
 ```
 
 See **[examples/example.py](examples/example.py)** for a full AG-News demo with GCP classifier and concept-level labels.
@@ -193,9 +149,13 @@ System accuracy stays close to the teacher baseline (100%) during training. Desp
 
 ### 📊 Benchmarks Comparison
 
-![AGNews Benchmark](benchmark_compare.png)
+| Dataset | Multilayer Perceptron | Graph of Concepts |
+|--------|-----------------------|-------------------|
+| Supreme Court Judgment Prediction Dataset | 95.8 | 97.6 |
+| MIMIC-CXR Dataset | 93.6 | 96.5 |
+| American Express - Default Prediction Dataset | 95.7 | 97.8 |
 
-Across AGNews, SemEval, and Amazon, our distilled student models **approximately comparable to the teacher LLM baseline**: GCP reaches 97.6%, 96.5%, and 97.8% respectively, while MLP achieves 95.8%, 93.6%, and 95.7%. This demonstrates that the framework preserves prediction quality  while enabling efficient inference.
+Across Supreme Court Judgment Prediction Dataset, MIMIC-CXR Dataset, and American Express - Default Prediction Dataset, our distilled student models **approximately comparable to the teacher LLM baseline**: GCP reaches 97.6%, 96.5%, and 97.8% respectively, while MLP achieves 95.8%, 93.6%, and 95.7%. This demonstrates that the framework preserves prediction quality  while enabling efficient inference.
 
 
 
