@@ -43,9 +43,9 @@ As LLM becomes more and more popular, the cost of using LLM is becoming a major 
 
 ## 📋 Applications
 
-| ⚖️ **Legal** | 🏥 **Healthcare** | 💼 **Finance** |
-|--------------|-------------------|----------------|
-| - Case Outcome Prediction<br>- Contract Clause Classification<br>- Legal Reasoning / Multi-hop QA | - Radiology Report Abnormality Classification<br>- Clinical Note Coding<br>- Medical NER / Drug-Drug Interaction | - Sentiment Analysis<br>- Risk Assessment<br>- Fraud Detection / Financial QA |
+| ⚖️ **Legal** | 🏥 **Healthcare** | 💼 **Finance** | ✨ **And More** |
+|--------------|-------------------|----------------|----------------|
+| - Case Outcome Prediction<br>- Contract Clause Classification<br>- Legal Reasoning / Multi-hop QA | - Radiology Report Abnormality Classification<br>- Clinical Note Coding<br>- Medical NER / Drug-Drug Interaction | - Sentiment Analysis<br>- Risk Assessment<br>- Fraud Detection / Financial QA | - Much more applications... |
 
 
 ## 🎯 Key Features
