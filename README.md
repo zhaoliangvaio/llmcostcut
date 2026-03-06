@@ -40,7 +40,7 @@ As LLM becomes more and more popular, the cost of using LLM is becoming a major 
 ## 📋 Applications
 
 <p align="center">
-  <img src="table.png" alt="Applications" width="600"/>
+  <img src="table.png" alt="Applications" width="900"/>
 </p>
 
 <!-- | ⚖️ Legal | 🏥 Healthcare | 💼 Finance | ✨ More |
