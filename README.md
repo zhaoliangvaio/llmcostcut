@@ -172,7 +172,7 @@ Across [Supreme Court Judgment Prediction Dataset](https://www.kaggle.com/datase
 llmcostcut/
 ├── src/
 │   └── llmcostcut/
-│      └── __init__.py       # Exports monitor
+│       __init__.py       # Exports monitor
 │       buffers.py       # Replay buffer (RingBuffer, balanced sampling)
 │       correctness.py   # Correctness predictor
 │       defaults.py      # Encoder, tokenizer, optimizer defaults
