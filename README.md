@@ -129,14 +129,7 @@ See **[examples/example.py](examples/example.py)** for a full AG-News demo with 
 
 ## ⚙️ How It Works
 
-<div align="center">
-  <video src="LLMCostCut.mov" controls width="500">
-    Your browser does not support the video tag.
-  </video>
-</div>
-
-LLMCostCut operates in three progressive stages. Initially, the **Task Analyzer** routes incoming text to the main **LLM Reasoning** pipeline while a distilled small model (e.g., Multilayer Perceptron) learns from the teacher via **Distillation**. As training progresses, the system transitions to a **hybrid** mode where both LLM and small model participate in inference. Eventually, the small model becomes the primary route—handling most queries locally—while the LLM remains available for uncertain cases, achieving significant cost reduction without sacrificing accuracy.
-
+https://github.com/user-attachments/assets/6e835c77-ebdd-48df-96d2-2e1667696543
 
 ---
 
