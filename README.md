@@ -36,7 +36,6 @@ As LLM becomes more and more popular, the cost of using LLM is becoming a major 
 - 📁 [Project Structure](#project-structure)
 - 📚 [API Reference](#api-reference)
   - 🔧 [monitor()](#monitor---main-parameters)
-- 📐 [Graph of Concepts](#graph-of-concepts)
 - 📖 [Citation](#citation)
 - 🙏 [Acknowledgements](#acknowledgements)
 
@@ -161,7 +160,7 @@ System accuracy stays close to the teacher baseline (100%) during training. Desp
 | MIMIC-CXR Dataset | 93.6 | 96.5 |
 | American Express - Default Prediction Dataset | 95.7 | 97.8 |
 
-Across [Supreme Court Judgment Prediction Dataset](https://www.kaggle.com/datasets/deepcontractor/supreme-court-judgment-prediction), [MIMIC-CXR Dataset](https://physionet.org/content/mimic-cxr/2.1.0/), and [American Express - Default Prediction Dataset](https://www.kaggle.com/competitions/amex-default-prediction), our distilled student models **approximately comparable to the teacher LLM baseline** in *relative accuracy*: GCP reaches 97.6%, 96.5%, and 97.8% respectively, while MLP achieves 95.8%, 93.6%, and 95.7%. This demonstrates that the framework preserves prediction quality while enabling efficient inference.
+Across [Supreme Court Judgment Prediction Dataset](https://www.kaggle.com/datasets/deepcontractor/supreme-court-judgment-prediction), [MIMIC-CXR Dataset](https://physionet.org/content/mimic-cxr/2.1.0/), and [American Express - Default Prediction Dataset](https://www.kaggle.com/competitions/amex-default-prediction), our distilled student models **approximately comparable to the teacher LLM baseline** in *relative accuracy*: GCP (proposed in [Distilling LLM Reasoning into Graph of Concept Predictors](https://arxiv.org/abs/2602.03006)) reaches 97.6%, 96.5%, and 97.8% respectively, while MLP achieves 95.8%, 93.6%, and 95.7%. This demonstrates that the framework preserves prediction quality while enabling efficient inference.
 
 
 
@@ -173,7 +172,7 @@ Across [Supreme Court Judgment Prediction Dataset](https://www.kaggle.com/datase
 llmcostcut/
 ├── src/
 │   └── llmcostcut/
-│       __init__.py       # Exports monitor
+│      └── __init__.py       # Exports monitor
 │       buffers.py       # Replay buffer (RingBuffer, balanced sampling)
 │       correctness.py   # Correctness predictor
 │       defaults.py      # Encoder, tokenizer, optimizer defaults
