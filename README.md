@@ -118,7 +118,7 @@ def classify_with_llm(texts, task):
 TASK = {"topic_classification": ["World","Sports","Business","Sci/Tech"]}
 
 for example in load_dataset("ag_news", split="train[:100]"):
-    prediction, used_llm = monitor(TASK, example["text"], llm_fn=classify_with_llm, mode="online")
+    output, used_llm_or_not = monitor(TASK, example["text"], llm_fn=classify_with_llm, mode="online")
 
 monitor.close()
 ```
