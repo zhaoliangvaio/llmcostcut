@@ -7,17 +7,12 @@
 
 **Optimized. Efficient. Powerful.**
 
-[GitHub](https://github.com/zhaoliangvaio/llmcostcut)
-[arXiv](https://arxiv.org/abs/2602.03006)
-[License](LICENSE)
-[Python](https://www.python.org/)
-[PyPI](https://pypi.org/project/llmcostcut/)
+[![GitHub](https://img.shields.io/badge/GitHub-Project-black?logo=github)](https://github.com/zhaoliangvaio/llmcostcut)
+[![arXiv](https://img.shields.io/badge/arXiv-2602.03006-b31b1b?logo=arxiv)](https://arxiv.org/abs/2602.03006)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.8-blue?logo=python)](https://www.python.org/)
+[![PyPI](https://img.shields.io/badge/PyPI-v1.0.0-orange?logo=pypi)](https://pypi.org/project/llmcostcut/)
 
-
-
-
-
-[English](README.md)
 
 ---
 
