@@ -141,7 +141,7 @@ The inference cost decreases over time as the student model handles more queries
 
 ### 📈 Accuracy
 
-![Accuracy](accuracy.png)
+![Accuracy](acc.png)
 
 System accuracy stays close to the teacher baseline (100%) during training. Despite the drop in LLM fallback, accuracy stabilizes around 95% after the initial phase, showing that the distilled student preserves quality while cutting inference cost.
 
