@@ -1,4 +1,7 @@
 
+<p align="center">
+  <img src="assets/llmcostcut_logo.png" alt="LLMCostCut Logo" width="600"/>
+</p>
 
 # LLMCostCut: The Intelligent Cost Cutter for Large Language Models
 
@@ -38,41 +41,16 @@ As LLM becomes more and more popular, the cost of using LLM is becoming a major 
 - 📖 [Citation](#citation)
 - 🙏 [Acknowledgements](#acknowledgements)
 
+
 ## 📋 Applications
 
-<table style="width: 100%; table-layout: fixed; border-collapse: collapse;">
-  <tr>
-    <th style="width: 25%; border: 1px solid #444; padding: 12px; text-align: center;">⚖️ Legal</th>
-    <th style="width: 25%; border: 1px solid #444; padding: 12px; text-align: center;">🏥 Healthcare</th>
-    <th style="width: 25%; border: 1px solid #444; padding: 12px; text-align: center;">💼 Finance</th>
-    <th style="width: 25%; border: 1px solid #444; padding: 12px; text-align: center;">✨ More</th>
-  </tr>
-  <tr>
-    <td style="border: 1px solid #444; padding: 16px; vertical-align: top;">
-      - Case Outcome Prediction<br>
-      - Contract Clause Classification<br>
-      - Legal Reasoning / Multi-hop QA<br>
-      <div style="text-align: center;">...</div>
-    </td>
-    <td style="border: 1px solid #444; padding: 16px; vertical-align: top;">
-      - Radiology Report Abnormality Classification<br>
-      - Clinical Note Coding<br>
-      - Medical NER / Drug-Drug Interaction<br>
-      <div style="text-align: center;">...</div>
-    </td>
-    <td style="border: 1px solid #444; padding: 16px; vertical-align: top;">
-      - Sentiment Analysis<br>
-      - Risk Assessment<br>
-      - Fraud Detection / Financial QA<br>
-      <div style="text-align: center;">...</div>
-    </td>
-    <td style="border: 1px solid #444; padding: 16px; vertical-align: top;">
-      - Science<br>
-      - Materials<br>
-      <div style="text-align: center;">...</div>
-    </td>
-  </tr>
-</table>
+<p align="center">
+  <img src="table.png" alt="Applications" width="600"/>
+</p>
+
+<!-- | ⚖️ Legal | 🏥 Healthcare | 💼 Finance | ✨ More |
+|---|---|---|---|
+| -Case Outcome Prediction<br>-Contract Clause Classification<br>-Legal Reasoning / Multi-hop QA<br><div align="center">...</div> | -Radiology Report Abnormality Classification<br>-Clinical Note Coding<br>-Medical NER / Drug-Drug Interaction<br><div align="center">...</div> | -Sentiment Analysis<br>-Risk Assessment<br>-Fraud Detection / Financial QA<br><div align="center">...</div> | -Science<br>-Materials<br><div align="center">...</div> | -->
 
 ## 🎯 Key Features
 
