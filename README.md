@@ -135,13 +135,13 @@ https://github.com/user-attachments/assets/4d5d6cdd-1fa6-4cbe-a2e9-679733667489
 
 ### 💰 Cost Reduction
 
-Cost Curve
+![Cost Curve](cost_curve.png)
 
 The inference cost decreases over time as the student model handles more queries and the fallback to the teacher LLM becomes less frequent.
 
 ### 📈 Accuracy
 
-Accuracy
+![Accuracy](acc.png)
 
 System accuracy stays close to the teacher baseline (100%) during training. Despite the drop in LLM fallback, accuracy stabilizes around 95% after the initial phase, showing that the distilled student preserves quality while cutting inference cost.
 
