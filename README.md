@@ -52,7 +52,7 @@ As LLM becomes more and more popular, the cost of using LLM is becoming a major 
 
 | 📈 **Accuracy up to 95%**                                         | 💰 **Around 10× Cost Reduction**                                                              | ⚡ **Nearly 1000× Speedup**                                                                                                     | 🛠️ **Easy to Use**                                  |
 | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------- |
-| Maintain near-teacher quality while cutting LLM calls toward zero | Student handles most queries; teacher only when uncertain — inference bills drop dramatically | Local small student model (~~100k-2M params) inference vs. LLM (~~1T params) API calls — orders of magnitude faster in latency | Minimal code changes — Runnable in few lines of code |
+| Maintain near-teacher quality while cutting LLM calls toward zero | Student handles most queries; teacher only when uncertain — inference bills drop dramatically | Local small student model (~100k-2M params) inference vs. LLM (~1T params) API calls — orders of magnitude faster in latency | Minimal code changes — Runnable in few lines of code |
 
 
 ---
@@ -141,7 +141,7 @@ The inference cost decreases over time as the student model handles more queries
 
 ### 📈 Accuracy
 
-![Accuracy](acc.png)
+![Accuracy](accuracy.png)
 
 System accuracy stays close to the teacher baseline (100%) during training. Despite the drop in LLM fallback, accuracy stabilizes around 95% after the initial phase, showing that the distilled student preserves quality while cutting inference cost.
 
