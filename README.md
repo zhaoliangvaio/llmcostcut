@@ -1,3 +1,4 @@
+
 <p align="center">
   <img src="assets/llmcostcut_logo.png" alt="LLMCostCut Logo" width="600"/>
 </p>
@@ -6,20 +7,21 @@
 
 **Optimized. Efficient. Powerful.**
 
-[![GitHub](https://img.shields.io/badge/GitHub-Project-181717?logo=github)](https://github.com/zhaoliangvaio/llmcostcut)
-[![arXiv](https://img.shields.io/badge/arXiv-2602.03006-red?logo=arxiv)](https://arxiv.org/abs/2602.03006)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/Python-3.8+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![PyPI](https://img.shields.io/pypi/v/llmcostcut?color=blue)](https://pypi.org/project/llmcostcut/)
-<!-- [![PyPI Downloads](https://img.shields.io/pypi/dm/llmcostcut?color=green)](https://pypi.org/project/llmcostcut/) -->
+[GitHub](https://github.com/zhaoliangvaio/llmcostcut)
+[arXiv](https://arxiv.org/abs/2602.03006)
+[License](LICENSE)
+[Python](https://www.python.org/)
+[PyPI](https://pypi.org/project/llmcostcut/)
 
-<!-- [![中文](https://img.shields.io/badge/中文-README--zh.md-green)](README-zh.md) -->
-[![English](https://img.shields.io/badge/English-README.md-blue)](README.md)
+
+
+
+
+[English](README.md)
 
 ---
 
 As LLM becomes more and more popular, the cost of using LLM is becoming a major concern. LLMCostCut is a discriminative workload for LLM to reduce the cost of using LLM while maintaining the accuracy.
-
 
 ## Table of Contents
 
@@ -42,17 +44,20 @@ As LLM becomes more and more popular, the cost of using LLM is becoming a major 
 
 ## 📋 Applications
 
-| ⚖️ **Legal** | 🏥 **Healthcare** | 💼 **Finance** | ✨ **More Applications** |
-|--------------|-------------------|----------------|----------------|
-| - Case Outcome Prediction<br>- Contract Clause Classification<br>- Legal Reasoning / Multi-hop QA | - Radiology Report Abnormality Classification<br>- Clinical Note Coding<br>- Medical NER / Drug-Drug Interaction | - Sentiment Analysis<br>- Risk Assessment<br>- Fraud Detection / Financial QA | Much more applications, such as Science, Materials, and more... |
+<p align="center">
+  <img src="table.png" alt="Applications" width="600"/>
+</p>
 
+<!-- | ⚖️ Legal | 🏥 Healthcare | 💼 Finance | ✨ More |
+|---|---|---|---|
+| -Case Outcome Prediction<br>-Contract Clause Classification<br>-Legal Reasoning / Multi-hop QA<br><div align="center">...</div> | -Radiology Report Abnormality Classification<br>-Clinical Note Coding<br>-Medical NER / Drug-Drug Interaction<br><div align="center">...</div> | -Sentiment Analysis<br>-Risk Assessment<br>-Fraud Detection / Financial QA<br><div align="center">...</div> | -Science<br>-Materials<br><div align="center">...</div> | -->
 
 ## 🎯 Key Features
 
-| 📈 **Accuracy up to 95%** | 💰 **Around 10× Cost Reduction** | ⚡ **Nearly 1000× Speedup** | 🛠️ **Easy to Use** |
-|---------------------------|---------------------------|----------------------|-------------------|
-| Maintain near-teacher quality while cutting LLM calls toward zero | Student handles most queries; teacher only when uncertain — inference bills drop dramatically | Local small student model (~100k-2M params) inference vs. LLM (~1T params) API calls — orders of magnitude faster in latency | Minimal code changes — Runnable in few lines of code |
 
+| 📈 **Accuracy up to 95%**                                         | 💰 **Around 10× Cost Reduction**                                                              | ⚡ **Nearly 1000× Speedup**                                                                                                     | 🛠️ **Easy to Use**                                  |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------- |
+| Maintain near-teacher quality while cutting LLM calls toward zero | Student handles most queries; teacher only when uncertain — inference bills drop dramatically | Local small student model (~~100k-2M params) inference vs. LLM (~~1T params) API calls — orders of magnitude faster in latency | Minimal code changes — Runnable in few lines of code |
 
 
 ---
@@ -93,11 +98,9 @@ export OPENAI_API_KEY="your-key-here"
 
 Or put `OPENAI_API_KEY=your-key-here` in a `.env` file in the project root (loaded automatically if `python-dotenv` is installed).
 
-
-
 ## 🚀 Quick Start
 
-Instead of calling the LLM directly every time, use **`monitor`** as a smart router: it first tries the small student model; only when the student is uncertain (confidence below `p_threshold`) does it fall back to the teacher LLM. Over time, the student learns and LLM calls drop toward zero.
+Instead of calling the LLM directly every time, use `**monitor**` as a smart router: it first tries the small student model; only when the student is uncertain (confidence below `p_threshold`) does it fall back to the teacher LLM. Over time, the student learns and LLM calls drop toward zero.
 
 ```python
 from datasets import load_dataset
@@ -118,7 +121,7 @@ def classify_with_llm(texts, task):
 TASK = {"topic_classification": ["World","Sports","Business","Sci/Tech"]}
 
 for example in load_dataset("ag_news", split="train[:100]"):
-    prediction, used_llm = monitor(TASK, example["text"], llm_fn=classify_with_llm, mode="online")
+    output, used_llm_or_not = monitor(TASK, example["text"], llm_fn=classify_with_llm, mode="online")
 
 monitor.close()
 ```
@@ -129,12 +132,7 @@ See **[examples/example.py](examples/example.py)** for a full AG-News demo with 
 
 ## ⚙️ How It Works
 
-<div align="center">
-  <img src="diagram.png" alt="LLMCostCut Architecture" width="500">
-</div>
-
-LLMCostCut operates in three progressive stages. Initially, the **Task Analyzer** routes incoming text to the main **LLM Reasoning** pipeline while a distilled small model (e.g., Multilayer Perceptron) learns from the teacher via **Distillation**. As training progresses, the system transitions to a **hybrid** mode where both LLM and small model participate in inference. Eventually, the small model becomes the primary route—handling most queries locally—while the LLM remains available for uncertain cases, achieving significant cost reduction without sacrificing accuracy.
-
+https://github.com/user-attachments/assets/03249fea-b452-427d-ab8b-2ac96ebc0540
 
 ---
 
@@ -142,27 +140,27 @@ LLMCostCut operates in three progressive stages. Initially, the **Task Analyzer*
 
 ### 💰 Cost Reduction
 
-![Cost Curve](cost_curve.png)
+Cost Curve
 
 The inference cost decreases over time as the student model handles more queries and the fallback to the teacher LLM becomes less frequent.
 
 ### 📈 Accuracy
 
-![Accuracy](acc.png)
+Accuracy
 
 System accuracy stays close to the teacher baseline (100%) during training. Despite the drop in LLM fallback, accuracy stabilizes around 95% after the initial phase, showing that the distilled student preserves quality while cutting inference cost.
 
 ### 📊 Benchmarks Comparison
 
-| Dataset | LLMCost with Multilayer Perceptron (MLP) as small model | LLMCost with Graph of Concepts (GCP) as small model |
-|--------|-----------------------|-------------------|
-| Supreme Court Judgment Prediction Dataset | 95.8 | 97.6 |
-| MIMIC-CXR Dataset | 93.6 | 96.5 |
-| American Express - Default Prediction Dataset | 95.7 | 97.8 |
+
+| Dataset                                       | LLMCost with Multilayer Perceptron (MLP) as small model | LLMCost with Graph of Concepts (GCP) as small model |
+| --------------------------------------------- | ------------------------------------------------------- | --------------------------------------------------- |
+| Supreme Court Judgment Prediction Dataset     | 95.8                                                    | 97.6                                                |
+| MIMIC-CXR Dataset                             | 93.6                                                    | 96.5                                                |
+| American Express - Default Prediction Dataset | 95.7                                                    | 97.8                                                |
+
 
 Across [Supreme Court Judgment Prediction Dataset](https://www.kaggle.com/datasets/deepcontractor/supreme-court-judgment-prediction), [MIMIC-CXR Dataset](https://physionet.org/content/mimic-cxr/2.1.0/), and [American Express - Default Prediction Dataset](https://www.kaggle.com/competitions/amex-default-prediction), our student models **approximately comparable to the teacher LLM baseline** in *relative accuracy*: GCP (proposed in [Distilling LLM Reasoning into Graph of Concept Predictors](https://arxiv.org/abs/2602.03006)) reaches 97.6%, 96.5%, and 97.8% respectively, while MLP achieves 95.8%, 93.6%, and 95.7%. This demonstrates that the framework preserves prediction quality while enabling efficient inference.
-
-
 
 ---
 
@@ -199,45 +197,50 @@ llmcostcut/
 
 #### Required
 
-- **`tasks`** (`dict[str, list[str]]`): Task ID → list of allowed class labels.
+- `**tasks**` (`dict[str, list[str]]`): Task ID → list of allowed class labels.
   ```python
   {"task1": ["class1", "class2"], "task2": ["A", "B", "C"]}
   ```
-- **`text`** (`str | list[str] | tuple[str, ...]`): Input text(s). Single string for one sample, list/tuple for batch.
-- **`mode`** (str): **Required.** `"online"` or `"offline"`.
+- `**text**` (`str | list[str] | tuple[str, ...]`): Input text(s). Single string for one sample, list/tuple for batch.
+- `**mode**` (str): **Required.** `"online"` or `"offline"`.
   - `"online"`: student is updated during inference.
   - `"offline"`: student is frozen; samples are selected up-front via `offline_select_method` and `offline_select_budget`.
 
 #### Optional parameters
 
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `llm_fn` | built-in OpenAI | Teacher function. Custom signature: `llm_fn(texts, tasks, **kwargs)`. |
-| `p_threshold` | `0.8` | Min confidence to trust the student; below this, use LLM. |
-| `classifier_type` | `"deep_mlp"` | Student head: `"deep_mlp"` or `"gcp"`. |
-| `classifier_kwargs` | `None` | Architecture-specific kwargs (see below). |
-| `encoder` | `distilbert-base-uncased` | Encoder model instance. |
-| `device` | auto | Device (e.g. `"cuda:0"`, `"cpu"`). |
-| `llm_kwargs` | `{}` | Passed to `llm_fn`. For default OpenAI teacher, can include `concept_info` for GCP concept labels. |
+
+| Parameter           | Default                   | Description                                                                                        |
+| ------------------- | ------------------------- | -------------------------------------------------------------------------------------------------- |
+| `llm_fn`            | built-in OpenAI           | Teacher function. Custom signature: `llm_fn(texts, tasks, **kwargs)`.                              |
+| `p_threshold`       | `0.8`                     | Min confidence to trust the student; below this, use LLM.                                          |
+| `classifier_type`   | `"deep_mlp"`              | Student head: `"deep_mlp"` or `"gcp"`.                                                             |
+| `classifier_kwargs` | `None`                    | Architecture-specific kwargs (see below).                                                          |
+| `encoder`           | `distilbert-base-uncased` | Encoder model instance.                                                                            |
+| `device`            | auto                      | Device (e.g. `"cuda:0"`, `"cpu"`).                                                                 |
+| `llm_kwargs`        | `{}`                      | Passed to `llm_fn`. For default OpenAI teacher, can include `concept_info` for GCP concept labels. |
+
 
 #### Offline-only parameters
 
-| Parameter | Description |
-|-----------|-------------|
-| `offline_select_method` | **Required** when `mode="offline"`. Strategy (e.g. `"random"`, `"uncertainty"`). |
+
+| Parameter               | Description                                                                       |
+| ----------------------- | --------------------------------------------------------------------------------- |
+| `offline_select_method` | **Required** when `mode="offline"`. Strategy (e.g. `"random"`, `"uncertainty"`).  |
 | `offline_select_budget` | **Required** when `mode="offline"`. Max number of samples to send to the teacher. |
+
 
 #### Return value
 
 A 2-tuple `(results, used_llm)`:
 
-| Input | `results` | `used_llm` |
-|-------|------------|------------|
-| Single `str` | `dict[str, str]` | `bool` |
+
+| Input          | `results`              | `used_llm`   |
+| -------------- | ---------------------- | ------------ |
+| Single `str`   | `dict[str, str]`       | `bool`       |
 | list/tuple str | `list[dict[str, str]]` | `list[bool]` |
 
----
 
+---
 
 ## 📖 Citation
 
