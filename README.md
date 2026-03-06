@@ -40,37 +40,36 @@ As LLM becomes more and more popular, the cost of using LLM is becoming a major 
 
 ## 📋 Applications
 
-
-<table>
+<table style="width: 100%; table-layout: fixed; border-collapse: collapse;">
   <tr>
-    <th>⚖️ Legal  </th>
-    <th>🏥 Healthcare</th>
-    <th>💼 Finance</th>
-    <th>✨ More</th>
+    <th style="width: 25%; border: 1px solid #444; padding: 12px; text-align: center;">⚖️ Legal</th>
+    <th style="width: 25%; border: 1px solid #444; padding: 12px; text-align: center;">🏥 Healthcare</th>
+    <th style="width: 25%; border: 1px solid #444; padding: 12px; text-align: center;">💼 Finance</th>
+    <th style="width: 25%; border: 1px solid #444; padding: 12px; text-align: center;">✨ More</th>
   </tr>
   <tr>
-    <td>
+    <td style="border: 1px solid #444; padding: 16px; vertical-align: top;">
       - Case Outcome Prediction<br>
       - Contract Clause Classification<br>
       - Legal Reasoning / Multi-hop QA<br>
-      <div style="text-align:center;">...</div>
+      <div style="text-align: center;">...</div>
     </td>
-    <td>
+    <td style="border: 1px solid #444; padding: 16px; vertical-align: top;">
       - Radiology Report Abnormality Classification<br>
       - Clinical Note Coding<br>
       - Medical NER / Drug-Drug Interaction<br>
-      <div style="text-align:center;">...</div>
+      <div style="text-align: center;">...</div>
     </td>
-    <td>
+    <td style="border: 1px solid #444; padding: 16px; vertical-align: top;">
       - Sentiment Analysis<br>
       - Risk Assessment<br>
       - Fraud Detection / Financial QA<br>
-      <div style="text-align:center;">...</div>
+      <div style="text-align: center;">...</div>
     </td>
-    <td>
+    <td style="border: 1px solid #444; padding: 16px; vertical-align: top;">
       - Science<br>
       - Materials<br>
-      <div style="text-align:center;">...</div>
+      <div style="text-align: center;">...</div>
     </td>
   </tr>
 </table>
