@@ -132,7 +132,7 @@ See **[examples/example.py](examples/example.py)** for a full AG-News demo with 
 
 ## ⚙️ How It Works
 
-https://github.com/user-attachments/assets/03249fea-b452-427d-ab8b-2ac96ebc0540
+https://github.com/user-attachments/assets/4d5d6cdd-1fa6-4cbe-a2e9-679733667489
 
 ---
 
