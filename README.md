@@ -40,7 +40,7 @@ As LLM becomes more and more popular, the cost of using LLM is becoming a major 
 ## 📋 Applications
 
 <p align="center">
-  <img src="table.png" alt="Applications" width="900"/>
+  <img src="assets/table.png" alt="Applications" width="900"/>
 </p>
 
 <!-- | ⚖️ Legal | 🏥 Healthcare | 💼 Finance | ✨ More |
@@ -127,7 +127,7 @@ See **[examples/example.py](examples/example.py)** for a full AG-News demo with 
 
 ## ⚙️ How It Works
 
-![LLMCostCut](LLMCostCut.gif)
+![LLMCostCut](assets/LLMCostCut.gif)
 
 ---
 
@@ -135,13 +135,13 @@ See **[examples/example.py](examples/example.py)** for a full AG-News demo with 
 
 ### 💰 Cost Reduction
 
-![Cost Curve](cost_curve.png)
+![Cost Curve](assets/cost_curve.png)
 
 The inference cost decreases over time as the student model handles more queries and the fallback to the teacher LLM becomes less frequent.
 
 ### 📈 Accuracy
 
-![Accuracy](acc.png)
+![Accuracy](assets/acc.png)
 
 System accuracy stays close to the teacher baseline (100%) during training. Despite the drop in LLM fallback, accuracy stabilizes around 95% after the initial phase, showing that the distilled student preserves quality while cutting inference cost.
 
