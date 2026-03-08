@@ -16,13 +16,13 @@ long_description = readme_file.read_text(encoding="utf-8") if readme_file.exists
 
 setup(
     name="llmcostcut",
-    version="0.1.0",
+    version="1.0.0",
     description="A framework for selectively invoking LLMs and distilling repeated workloads into smaller models",
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="Liang Zhao",
     author_email="liang.zhao@emory.edu",
-    url="https://github.com/emory-llmcostcut/llmcostcut",
+    url="https://github.com/zhaoliangvaio/llmcostcut",
     license="Apache 2.0",
     package_dir={"": "src"},
     packages=find_packages(where="src"),

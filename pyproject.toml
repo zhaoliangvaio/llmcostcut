@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "llmcostcut"
-version = "0.1.0"
+version = "1.0.0"
 description = "A framework for selectively invoking LLMs and distilling repeated workloads into smaller models"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -53,10 +53,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/emory-llmcostcut/llmcostcut"
-Documentation = "https://github.com/emory-llmcostcut/llmcostcut#readme"
-Repository = "https://github.com/emory-llmcostcut/llmcostcut"
-Issues = "https://github.com/emory-llmcostcut/llmcostcut/issues"
+Homepage = "https://github.com/zhaoliangvaio/llmcostcut"
+Documentation = "https://github.com/zhaoliangvaio/llmcostcut#readme"
+Repository = "https://github.com/zhaoliangvaio/llmcostcut"
+Issues = "https://github.com/zhaoliangvaio/llmcostcut/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]
