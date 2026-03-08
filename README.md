@@ -53,7 +53,7 @@ Reducing Cost of LLM Reasoning in Discriminative Workloads
 
 | 📈 **Accuracy up to 95%**                                         | 💰 **Around 10× Cost Reduction**                                                              | ⚡ **Nearly 1000× Speedup**                                                                                                     | 🛠️ **Easy to Use**                                  |
 | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------- |
-| Maintain near-teacher quality while cutting LLM calls toward zero | Student handles most queries; teacher only when uncertain — inference bills drop dramatically | Local small student model (~100k-2M params) inference vs. LLM (~1T params) API calls — orders of magnitude faster in latency | Minimal code changes — Runnable in few lines of code |
+| Maintain near-teacher quality while cutting LLM calls toward zero | Student handles most queries; teacher only when uncertain — inference bills drop dramatically | Local tiny student model (~100k-2M params) inference vs. LLM (~1T params) API calls — orders of magnitude faster in latency | Minimal code changes — Runnable in few lines of code |
 
 
 ---
@@ -96,7 +96,7 @@ Or put `OPENAI_API_KEY=your-key-here` in a `.env` file in the project root (load
 
 ## 🚀 Quick Start
 
-Instead of calling the LLM directly every time, use `**monitor**` as a smart router: it first tries the small student model; only when the student is uncertain (confidence below `p_threshold`) does it fall back to the teacher LLM. Over time, the student learns and LLM calls drop toward zero.
+Instead of calling the LLM directly every time, use `**monitor**` as a smart router: it first tries the tiny student model; only when the student is uncertain (confidence below `p_threshold`) does it fall back to the teacher LLM. Over time, the student learns and LLM calls drop toward zero.
 
 ```python
 from datasets import load_dataset
@@ -149,7 +149,7 @@ System accuracy stays close to the teacher baseline (100%) during training. Desp
 ### 📊 Benchmarks Comparison in Accuracy
 
 
-| Dataset                                       | LLMCost with Multilayer Perceptron (MLP) as small model | LLMCost with Graph of Concepts (GCP) as small model |
+| Dataset                                       | LLMCost with Multilayer Perceptron (MLP) as student model | LLMCost with Graph of Concepts (GCP) as student model |
 | --------------------------------------------- | ------------------------------------------------------- | --------------------------------------------------- |
 | Supreme Court Judgment Prediction Dataset     | 95.8 %                                                   | 97.6 %                                               |
 | MIMIC-CXR Dataset                             | 93.6 %                                                   | 96.5 %                                               |
