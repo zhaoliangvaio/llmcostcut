@@ -38,9 +38,10 @@ As LLM becomes more and more popular, the cost of using LLM is becoming a major 
 
 
 ## 📋 Applications
+Reducing Cost of LLM Reasoning in Discriminative Workloads
 
 <p align="center">
-  <img src="table.png" alt="Applications" width="900"/>
+  <img src="assets/table.png" alt="Applications" width="900"/>
 </p>
 
 <!-- | ⚖️ Legal | 🏥 Healthcare | 💼 Finance | ✨ More |
@@ -52,7 +53,7 @@ As LLM becomes more and more popular, the cost of using LLM is becoming a major 
 
 | 📈 **Accuracy up to 95%**                                         | 💰 **Around 10× Cost Reduction**                                                              | ⚡ **Nearly 1000× Speedup**                                                                                                     | 🛠️ **Easy to Use**                                  |
 | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------- |
-| Maintain near-teacher quality while cutting LLM calls toward zero | Student handles most queries; teacher only when uncertain — inference bills drop dramatically | Local small student model (~100k-2M params) inference vs. LLM (~1T params) API calls — orders of magnitude faster in latency | Minimal code changes — Runnable in few lines of code |
+| Maintain near-teacher quality while cutting LLM calls toward zero | Student handles most queries; teacher only when uncertain — inference bills drop dramatically | Local tiny student model (~100k-2M params) inference vs. LLM (~1T params) API calls — orders of magnitude faster in latency | Minimal code changes — Runnable in few lines of code |
 
 
 ---
@@ -95,7 +96,7 @@ Or put `OPENAI_API_KEY=your-key-here` in a `.env` file in the project root (load
 
 ## 🚀 Quick Start
 
-Instead of calling the LLM directly every time, use `**monitor**` as a smart router: it first tries the small student model; only when the student is uncertain (confidence below `p_threshold`) does it fall back to the teacher LLM. Over time, the student learns and LLM calls drop toward zero.
+Instead of calling the LLM directly every time, use `**monitor**` as a smart router: it first tries the tiny student model; only when the student is uncertain (confidence below `p_threshold`) does it fall back to the teacher LLM. Over time, the student learns and LLM calls drop toward zero.
 
 ```python
 from datasets import load_dataset
@@ -127,7 +128,7 @@ See **[examples/example.py](examples/example.py)** for a full AG-News demo with 
 
 ## ⚙️ How It Works
 
-![LLMCostCut](LLMCostCut.gif)
+![LLMCostCut](assets/LLMCostCut.gif)
 
 ---
 
@@ -135,24 +136,24 @@ See **[examples/example.py](examples/example.py)** for a full AG-News demo with 
 
 ### 💰 Cost Reduction
 
-![Cost Curve](cost_curve.png)
+![Cost Curve](assets/cost_curve.png)
 
 The inference cost decreases over time as the student model handles more queries and the fallback to the teacher LLM becomes less frequent.
 
 ### 📈 Accuracy
 
-![Accuracy](acc.png)
+![Accuracy](assets/acc.png)
 
 System accuracy stays close to the teacher baseline (100%) during training. Despite the drop in LLM fallback, accuracy stabilizes around 95% after the initial phase, showing that the distilled student preserves quality while cutting inference cost.
 
-### 📊 Benchmarks Comparison
+### 📊 Benchmarks Comparison in Accuracy
 
 
-| Dataset                                       | LLMCost with Multilayer Perceptron (MLP) as small model | LLMCost with Graph of Concepts (GCP) as small model |
+| Dataset                                       | LLMCost with Multilayer Perceptron (MLP) as student model | LLMCost with Graph of Concepts (GCP) as student model |
 | --------------------------------------------- | ------------------------------------------------------- | --------------------------------------------------- |
-| Supreme Court Judgment Prediction Dataset     | 95.8                                                    | 97.6                                                |
-| MIMIC-CXR Dataset                             | 93.6                                                    | 96.5                                                |
-| American Express - Default Prediction Dataset | 95.7                                                    | 97.8                                                |
+| Supreme Court Judgment Prediction Dataset     | 95.8 %                                                   | 97.6 %                                               |
+| MIMIC-CXR Dataset                             | 93.6 %                                                   | 96.5 %                                               |
+| American Express - Default Prediction Dataset | 95.7 %                                                   | 97.8 %                                               |
 
 
 Across [Supreme Court Judgment Prediction Dataset](https://www.kaggle.com/datasets/deepcontractor/supreme-court-judgment-prediction), [MIMIC-CXR Dataset](https://physionet.org/content/mimic-cxr/2.1.0/), and [American Express - Default Prediction Dataset](https://www.kaggle.com/competitions/amex-default-prediction), our student models **approximately comparable to the teacher LLM baseline** in *relative accuracy*: GCP (proposed in [Distilling LLM Reasoning into Graph of Concept Predictors](https://arxiv.org/abs/2602.03006)) reaches 97.6%, 96.5%, and 97.8% respectively, while MLP achieves 95.8%, 93.6%, and 95.7%. This demonstrates that the framework preserves prediction quality while enabling efficient inference.
