@@ -1,6 +1,6 @@
 
 <p align="center">
-  <img src="assets/llmcostcut_logo.png" alt="LLMCostCut Logo" width="600"/>
+  <img src="https://raw.githubusercontent.com/zhaoliangvaio/llmcostcut/main/assets/llmcostcut_logo.png" alt="LLMCostCut Logo" width="600"/>
 </p>
 
 # LLMCostCut: The Intelligent Cost Cutter for Large Language Models
@@ -9,7 +9,7 @@
 
 [![GitHub](https://img.shields.io/badge/GitHub-Project-black?logo=github)](https://github.com/zhaoliangvaio/llmcostcut)
 [![arXiv](https://img.shields.io/badge/arXiv-2602.03006-b31b1b?logo=arxiv)](https://arxiv.org/abs/2602.03006)
-[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![License](https://img.shields.io/badge/License-MIT-green)](https://raw.githubusercontent.com/zhaoliangvaio/llmcostcut/main/LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.8-blue?logo=python)](https://www.python.org/)
 [![PyPI](https://img.shields.io/badge/PyPI-v1.0.0-orange?logo=pypi)](https://pypi.org/project/llmcostcut/)
 
@@ -41,7 +41,7 @@ As LLM becomes more and more popular, the cost of using LLM is becoming a major 
 Reducing Cost of LLM Reasoning in Discriminative Workloads
 
 <p align="center">
-  <img src="assets/table.png" alt="Applications" width="900"/>
+  <img src="https://raw.githubusercontent.com/zhaoliangvaio/llmcostcut/main/assets/table.png" alt="Applications" width="900"/>
 </p>
 
 <!-- | ⚖️ Legal | 🏥 Healthcare | 💼 Finance | ✨ More |
@@ -122,13 +122,13 @@ for example in load_dataset("ag_news", split="train[:100]"):
 monitor.close()
 ```
 
-See **[examples/example.py](examples/example.py)** for a full AG-News demo with GCP classifier and concept-level labels.
+See **[examples/example.py](https://raw.githubusercontent.com/zhaoliangvaio/llmcostcut/main/examples/example.py)** for a full AG-News demo with GCP classifier and concept-level labels.
 
 ---
 
 ## ⚙️ How It Works
 
-![LLMCostCut](assets/LLMCostCut.gif)
+![LLMCostCut](https://raw.githubusercontent.com/zhaoliangvaio/llmcostcut/main/assets/LLMCostCut.gif)
 
 ---
 
@@ -136,13 +136,13 @@ See **[examples/example.py](examples/example.py)** for a full AG-News demo with 
 
 ### 💰 Cost Reduction
 
-![Cost Curve](assets/cost_curve.png)
+![Cost Curve](https://raw.githubusercontent.com/zhaoliangvaio/llmcostcut/main/assets/cost_curve.png)
 
 The inference cost decreases over time as the student model handles more queries and the fallback to the teacher LLM becomes less frequent.
 
 ### 📈 Accuracy
 
-![Accuracy](assets/acc.png)
+![Accuracy](https://raw.githubusercontent.com/zhaoliangvaio/llmcostcut/main/assets/acc.png)
 
 System accuracy stays close to the teacher baseline (100%) during training. Despite the drop in LLM fallback, accuracy stabilizes around 95% after the initial phase, showing that the distilled student preserves quality while cutting inference cost.
 
