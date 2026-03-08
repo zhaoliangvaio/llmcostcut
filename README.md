@@ -145,14 +145,14 @@ The inference cost decreases over time as the student model handles more queries
 
 System accuracy stays close to the teacher baseline (100%) during training. Despite the drop in LLM fallback, accuracy stabilizes around 95% after the initial phase, showing that the distilled student preserves quality while cutting inference cost.
 
-### 📊 Benchmarks Comparison
+### 📊 Benchmarks Comparison in Accuracy
 
 
 | Dataset                                       | LLMCost with Multilayer Perceptron (MLP) as small model | LLMCost with Graph of Concepts (GCP) as small model |
 | --------------------------------------------- | ------------------------------------------------------- | --------------------------------------------------- |
-| Supreme Court Judgment Prediction Dataset     | 95.8                                                    | 97.6                                                |
-| MIMIC-CXR Dataset                             | 93.6                                                    | 96.5                                                |
-| American Express - Default Prediction Dataset | 95.7                                                    | 97.8                                                |
+| Supreme Court Judgment Prediction Dataset     | 95.8 %                                                   | 97.6 %                                               |
+| MIMIC-CXR Dataset                             | 93.6 %                                                   | 96.5 %                                               |
+| American Express - Default Prediction Dataset | 95.7 %                                                   | 97.8 %                                               |
 
 
 Across [Supreme Court Judgment Prediction Dataset](https://www.kaggle.com/datasets/deepcontractor/supreme-court-judgment-prediction), [MIMIC-CXR Dataset](https://physionet.org/content/mimic-cxr/2.1.0/), and [American Express - Default Prediction Dataset](https://www.kaggle.com/competitions/amex-default-prediction), our student models **approximately comparable to the teacher LLM baseline** in *relative accuracy*: GCP (proposed in [Distilling LLM Reasoning into Graph of Concept Predictors](https://arxiv.org/abs/2602.03006)) reaches 97.6%, 96.5%, and 97.8% respectively, while MLP achieves 95.8%, 93.6%, and 95.7%. This demonstrates that the framework preserves prediction quality while enabling efficient inference.
