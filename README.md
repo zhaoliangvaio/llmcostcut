@@ -37,7 +37,8 @@ As LLM becomes more and more popular, the cost of using LLM is becoming a major 
 - 🙏 [Acknowledgements](#acknowledgements)
 
 
-## 📋 Reducing Cost of LLM Reasoning in Discriminative Workloads
+## 📋 Applications
+Reducing Cost of LLM Reasoning in Discriminative Workloads
 
 <p align="center">
   <img src="assets/table.png" alt="Applications" width="900"/>
