@@ -13,3 +13,5 @@ tests/
 src/outputs/
 _README.md
 plot_cost_curve.py
+test.py
+dist/

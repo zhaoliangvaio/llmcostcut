@@ -111,12 +111,12 @@ def train_one_round_buff(
 
         step += 1
 
-    avg_loss = running_loss / max(1, step)
-    prefix = f"[Train:{train_tag}]" if train_tag else "[Train]"
-    msg = f"{prefix} steps={step} avg_loss={avg_loss:.6f}"
-    print(msg)
-    if callable(log_fn):
-        log_fn(msg)
+    # avg_loss = running_loss / max(1, step)
+    # prefix = f"[Train:{train_tag}]" if train_tag else "[Train]"
+    # msg = f"{prefix} steps={step} avg_loss={avg_loss:.6f}"
+    # print(msg)
+    # if callable(log_fn):
+    #     log_fn(msg)
 
 
 # ---------------------------------------------------------------------------

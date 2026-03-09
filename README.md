@@ -108,7 +108,7 @@ def classify_with_llm(texts, task):
     for text in texts:
         r = client.chat.completions.create(
             model="gpt-4o-mini",
-            messages=[{"role":"user","content":f"Classify into {labels}. Text: {text[:300]}"}],
+            messages=[{"role":"user","content":f"Classify into {labels}. Text: {text[:300]}. Output format should be one string of the label."}],
             max_tokens=10,
         )
         results.append({"topic_classification": r.choices[0].message.content.strip()})
