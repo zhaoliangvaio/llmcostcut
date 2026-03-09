@@ -11,7 +11,7 @@
 [![arXiv](https://img.shields.io/badge/arXiv-2602.03006-b31b1b?logo=arxiv)](https://arxiv.org/abs/2602.03006)
 [![License](https://img.shields.io/badge/License-MIT-green)](https://raw.githubusercontent.com/zhaoliangvaio/llmcostcut/main/LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.8-blue?logo=python)](https://www.python.org/)
-[![PyPI](https://img.shields.io/badge/PyPI-v1.0.2-orange?logo=pypi)](https://pypi.org/project/llmcostcut/)
+[![PyPI](https://img.shields.io/badge/PyPI-v1.0.3-orange?logo=pypi)](https://pypi.org/project/llmcostcut/)
 
 
 ---

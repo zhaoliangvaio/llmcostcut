@@ -16,7 +16,7 @@ long_description = readme_file.read_text(encoding="utf-8") if readme_file.exists
 
 setup(
     name="llmcostcut",
-    version="1.0.2",
+    version="1.0.3",
     description="A framework for selectively invoking LLMs and distilling repeated workloads into smaller models",
     long_description=long_description,
     long_description_content_type="text/markdown",
